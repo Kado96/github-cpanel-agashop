@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/agashopb/api/
+    - /bin/rsync -av backend/ $DEPLOYPATH --exclude .git --exclude venv --exclude db.sqlite3 --exclude media --exclude __pycache__
