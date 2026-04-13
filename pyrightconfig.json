@@ -1,0 +1,7 @@
+{
+  "venvPath": "./api/virtualenv",
+  "venv": "api",
+  "include": [
+    "api/backend"
+  ]
+}

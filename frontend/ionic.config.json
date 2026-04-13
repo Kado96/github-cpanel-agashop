@@ -1,0 +1,7 @@
+{
+  "name": "agashop",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}

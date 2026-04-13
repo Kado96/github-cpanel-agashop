@@ -1,0 +1,21 @@
+{
+  "reportMissingImports": "none",
+  "reportMissingTypeStubs": "none",
+  "pythonVersion": "3.11",
+  "pythonPlatform": "All",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "pythonVersion": "3.11",
+      "extraPaths": [
+        "../virtualenv/api/3.11/lib/python3.11/site-packages"
+      ]
+    }
+  ],
+  "ignore": [
+    "**/__pycache__",
+    "**/migrations",
+    "**/node_modules"
+  ]
+}
+

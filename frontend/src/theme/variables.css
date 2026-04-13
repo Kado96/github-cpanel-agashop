@@ -1,0 +1,215 @@
+/* For information on how to create your own theme, please see:
+http://ionicframework.com/docs/theming/ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* orange : #ff7200 blue : #153688 */
+
+:root {
+	--ion-color-primary: #FD7100;
+	--ion-color-primary-rgb: 253, 113, 0;
+	--ion-color-primary-contrast: #ffffff;
+	--ion-color-primary-contrast-rgb: 255, 255, 255;
+	--ion-color-primary-shade: #df6300;
+	--ion-color-primary-tint: #fd7f1a;
+
+	--ion-color-secondary: #1583C1;
+	--ion-color-secondary-rgb: 21, 131, 193;
+	--ion-color-secondary-contrast: #ffffff;
+	--ion-color-secondary-contrast-rgb: 255, 255, 255;
+	--ion-color-secondary-shade: #1272a8;
+	--ion-color-secondary-tint: #2c8fc7;
+
+	--ion-color-tertiary: #6030ff;
+	--ion-color-tertiary-rgb: 96, 48, 255;
+	--ion-color-tertiary-contrast: #ffffff;
+	--ion-color-tertiary-contrast-rgb: 255, 255, 255;
+	--ion-color-tertiary-shade: #542ae0;
+	--ion-color-tertiary-tint: #7045ff;
+
+	--ion-color-success: #2dd55b;
+	--ion-color-success-rgb: 45, 213, 91;
+	--ion-color-success-contrast: #ffffff;
+	--ion-color-success-contrast-rgb: 255, 255, 255;
+	--ion-color-success-shade: #28bb50;
+	--ion-color-success-tint: #42d96b;
+
+	--ion-color-warning: #ffc409;
+	--ion-color-warning-rgb: 255, 196, 9;
+	--ion-color-warning-contrast: #000000;
+	--ion-color-warning-contrast-rgb: 0, 0, 0;
+	--ion-color-warning-shade: #e0ac08;
+	--ion-color-warning-tint: #ffca22;
+
+	--ion-color-danger: #ef4444;
+	--ion-color-danger-rgb: 239, 68, 68;
+	--ion-color-danger-contrast: #ffffff;
+	--ion-color-danger-contrast-rgb: 255, 255, 255;
+	--ion-color-danger-shade: #d23c3c;
+	--ion-color-danger-tint: #f15757;
+
+	--ion-color-light: #f8fafc;
+	--ion-color-light-rgb: 248, 250, 252;
+	--ion-color-light-contrast: #0f172a;
+	--ion-color-light-contrast-rgb: 15, 23, 42;
+	--ion-color-light-shade: #dae1e7;
+	--ion-color-light-tint: #f9fbfe;
+
+	--ion-color-medium: #64748b;
+	--ion-color-medium-rgb: 100, 116, 139;
+	--ion-color-medium-contrast: #ffffff;
+	--ion-color-medium-contrast-rgb: 255, 255, 255;
+	--ion-color-medium-shade: #58667a;
+	--ion-color-medium-tint: #748297;
+
+	--ion-color-dark: #0f172a;
+	--ion-color-dark-rgb: 15, 23, 42;
+	--ion-color-dark-contrast: #ffffff;
+	--ion-color-dark-contrast-rgb: 255, 255, 255;
+	--ion-color-dark-shade: #0d1425;
+	--ion-color-dark-tint: #272e3f;
+
+	/* Global Fonts */
+	--ion-font-family: 'Outfit', sans-serif;
+
+	/* UI Tokens */
+	--card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+	--card-shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+	--border-radius-lg: 16px;
+	--border-radius-md: 12px;
+	--header-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Global Reset & Typography */
+html {
+	font-size: clamp(14px, 3vw, 16px);
+}
+
+* {
+	font-family: var(--ion-font-family);
+}
+
+body {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Professional Scrollbars */
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #94a3b8;
+}
+
+/* Global Professional Header Styles */
+ion-toolbar {
+	--padding-top: 4px;
+	--padding-bottom: 4px;
+	--min-height: 60px;
+}
+
+ion-buttons {
+	flex-shrink: 0 !important;
+}
+
+ion-title {
+	font-weight: 700 !important;
+	font-size: 1.15rem !important;
+	letter-spacing: -0.01em;
+	padding-inline: 4px !important;
+}
+
+.ion-no-border {
+	box-shadow: var(--header-shadow);
+}
+
+/* Common Header Container styles */
+.header-title-container {
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 700;
+}
+
+/* professional badges */
+ion-badge {
+	--padding-start: 8px;
+	--padding-end: 8px;
+	--padding-top: 4px;
+	--padding-bottom: 4px;
+	font-weight: 600;
+	border-radius: 6px;
+	font-size: 0.75rem;
+	letter-spacing: 0.02em;
+}
+
+/* professional list and items */
+ion-list {
+	background: transparent !important;
+	--background: transparent !important;
+}
+
+ion-item {
+	--padding-start: 16px;
+	--inner-padding-end: 16px;
+	--min-height: 72px;
+	--border-color: #f1f5f9;
+	font-size: 1rem;
+}
+
+ion-item h2 {
+	font-weight: 700;
+	color: #1e293b;
+	margin-bottom: 4px;
+}
+
+ion-item p {
+	color: #64748b;
+	font-size: 0.875rem;
+}
+
+/* Accessibility Utility: Screen Reader Only */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+
+/* Responsive and Centered Modals */
+ion-modal.responsive-modal {
+	--width: 95%;
+	--height: 90%;
+	--max-width: 500px;
+	--max-height: 90vh;
+	--border-radius: 20px;
+	--box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+	--overflow: hidden;
+}
+
+@media (min-width: 768px) {
+	ion-modal.responsive-modal {
+		--width: 500px;
+		--height: 600px;
+	}
+}

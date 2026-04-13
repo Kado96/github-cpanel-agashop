@@ -1,11 +1,39 @@
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
 node_modules/
 frontend/node_modules/
+backend/node_modules/
+
+# Environments
 .env
+.env.*
+!.env.example
+venv/
+.venv/
+env/
+backend/venv/
+
+# Build and Production
 dist/
 frontend/dist/
 build/
 frontend/android/app/build/
 frontend/android/build/
-.DS_Store
-*.log
-*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.idea/
+.vscode/
+
+# Database
+*.sqlite3
+# Ne JAMAIS inclure la base de données réelle dans Git pour la protection des données clients.
