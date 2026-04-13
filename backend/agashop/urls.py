@@ -40,6 +40,6 @@ urlpatterns = [
     path('api/logout/', TokenBlacklistView.as_view(), name="logout"),  # Pour blacklister le token lors du logout
     re_path(
         "^(?!media)(?!admin)(?!api)(?!ussd)(?!static)(?!silk).*$",
-        TemplateView.as_view(template_name='index.html')
+        AgashopView.as_view()
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
