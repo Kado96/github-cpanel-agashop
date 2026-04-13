@@ -176,6 +176,7 @@ import { basicProductsService, productsService, categoriesService, subCategories
 import { axiosService } from '../../plugins/axios';
 import { defineAsyncComponent } from 'vue';
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '../../utils/exportExcel';
 
 const BasicProductForm = defineAsyncComponent(() => import('../../components/admin/BasicProductForm.vue'));
 
@@ -630,7 +631,7 @@ export default {
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Catalogue");
-      XLSX.writeFile(wb, `Catalogue_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
+      saveWorkbook(wb, `Catalogue_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
       
       this.showTostMsg("Catalogue exporté avec succès.", "success", 2000);
     }

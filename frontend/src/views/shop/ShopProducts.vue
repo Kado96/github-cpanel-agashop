@@ -236,6 +236,7 @@
     trashOutline
   } from 'ionicons/icons'
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '../../utils/exportExcel';
 import { defineAsyncComponent } from 'vue';
 
 const BasicProductForm = defineAsyncComponent(() => import('../../components/admin/BasicProductForm.vue'));
@@ -548,7 +549,7 @@ export default {
             XLSX.utils.book_append_sheet(wb, ws, "Catalogue");
             
             const fileName = `Catalogue_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, fileName);
+            saveWorkbook(wb, fileName);
             this.showTostMsg('Export Excel réussi !', 'success');
         },
         async toggleInShop(basic){

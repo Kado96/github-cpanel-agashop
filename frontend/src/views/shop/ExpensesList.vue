@@ -189,6 +189,7 @@ import {
   downloadOutline
 } from 'ionicons/icons';
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '../../utils/exportExcel';
 import { expensesService } from '../../services/api/expenses';
 import ExpenseForm from '../../components/shop/ExpenseForm.vue';
 
@@ -403,7 +404,7 @@ export default {
        XLSX.utils.book_append_sheet(wb, ws, "Dépenses");
        
        const fileName = `Depenses_${this.startDate}_au_${this.endDate}.xlsx`;
-       XLSX.writeFile(wb, fileName);
+       saveWorkbook(wb, fileName);
        this.showToastMsg('Export Excel réussi !', 'success');
     },
     prevMonth() {

@@ -150,6 +150,7 @@ import {
   downloadOutline
 } from 'ionicons/icons';
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '../../utils/exportExcel';
 import { productsService } from '../../services/api/products';
 import { categoriesService } from '../../services/api/categories';
 import globalMixins from '../../composables/mixins';
@@ -290,7 +291,7 @@ export default {
        XLSX.utils.book_append_sheet(wb, ws, "Volume_Stock");
        
        const fileName = `Volume_Stock_${this.startDate}_au_${this.endDate}.xlsx`;
-       XLSX.writeFile(wb, fileName);
+       saveWorkbook(wb, fileName);
        this.showToastMsg('Export Excel réussi !', 'success');
     },
     async showToastMsg(message, color = 'dark') {

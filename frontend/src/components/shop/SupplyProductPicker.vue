@@ -166,6 +166,7 @@ import {
   listOutline
 } from 'ionicons/icons';
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '../../utils/exportExcel';
 import { axiosService } from '../../plugins/axios';
 import { categoriesService, subCategoriesService, basicProductsService, productsService } from '../../services/api';
 import globalMixins from '../../composables/mixins';
@@ -398,7 +399,7 @@ export default {
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'MaBoutique');
-      XLSX.writeFile(wb, `AgaShop_MaBoutique_${new Date().toISOString().slice(0,10)}.xlsx`);
+      saveWorkbook(wb, `AgaShop_MaBoutique_${new Date().toISOString().slice(0,10)}.xlsx`);
       
       this.showTostMsg('La liste des produits a été exportée avec succès', 'success');
     },

@@ -182,6 +182,7 @@ import {
   downloadOutline 
 } from 'ionicons/icons';
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '../../utils/exportExcel';
 import { salesService } from '../../services/api/sales';
 import { expensesService } from '../../services/api/expenses';
 import { suppliesService } from '../../services/api/supplies';
@@ -414,7 +415,7 @@ export default {
        XLSX.utils.book_append_sheet(wb, ws, "Bénéfices");
        
        const fileName = `Benefices_${this.startDate}_au_${this.endDate}.xlsx`;
-       XLSX.writeFile(wb, fileName);
+       saveWorkbook(wb, fileName);
        this.showToastMsg('Export Excel réussi !', 'success');
     },
     async showToastMsg(message, color = 'dark') {

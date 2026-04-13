@@ -164,6 +164,7 @@ import { accountsService } from '../../services/api/accounts';
 import { defineAsyncComponent } from 'vue';
 import mixins from '../../composables/mixins';
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '../../utils/exportExcel';
 
 const ShopForm = defineAsyncComponent(() => import('../../components/admin/ShopForm.vue'));
 
@@ -620,7 +621,7 @@ export default {
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Boutiques");
-      XLSX.writeFile(wb, `Boutiques_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
+      saveWorkbook(wb, `Boutiques_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
       
       this.showTostMsg("Liste exportée avec succès.", "success", 2000);
     }
