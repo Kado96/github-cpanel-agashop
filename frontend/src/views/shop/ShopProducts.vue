@@ -151,7 +151,7 @@
           <p v-if="basicProducts.length === 0">Ajoutez des produits au catalogue pour les voir ici.</p>
         </ion-label>
       </ion-item>
-      <ion-infinite-scroll @ionInfinite="loadMore" :disabled="!hasNextPage" id="shop-infinite-scroll">
+      <ion-infinite-scroll @ionInfinite="loadMore" :disabled="!hasNextPage && !hasMoreBasic" id="shop-infinite-scroll">
         <ion-infinite-scroll-content loading-spinner="bubbles" loading-text="Chargement des produits..."></ion-infinite-scroll-content>
       </ion-infinite-scroll>
     </ion-list>
@@ -309,18 +309,8 @@ export default {
       };
     },
     watch: {
-      searchKeyword(newVal) {
-        if (this.searchTimeout) clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => {
-          this.fetchBasicProducts(1);
-        }, 500); // 500ms debounce
-      },
       filterCategoryId() {
         this.onFilterCategoryChange();
-        this.fetchBasicProducts(1);
-      },
-      filterSubCategoryId() {
-        this.fetchBasicProducts(1);
       }
     },
     data(){
@@ -346,9 +336,32 @@ export default {
     },
     computed:{
         filteredProducts() {
-          // Filtrage désormais géré par le backend. 
-          // On garde le tri local minimaliste sur les résultats paginés.
-          return this.basicProducts;
+          let list = this.basicProducts || [];
+          const catId = this.filterCategoryId;
+          const subId = this.filterSubCategoryId;
+
+          if (subId != null && subId !== '') {
+            list = list.filter((p) => {
+              const sub = p.sub_category;
+              const pSubId = p.sub_category_id ?? sub?.id ?? sub;
+              return Number(pSubId) === Number(subId);
+            });
+          }
+          
+          if (this.searchKeyword && this.searchKeyword.trim() !== '') {
+            const kw = this.searchKeyword.trim().toLowerCase();
+            list = list.filter(p => {
+              const name = (p.name || '').toLowerCase();
+              const cat = (this.getCategoryLabel(p) || '').toLowerCase();
+              return name.includes(kw) || cat.includes(kw);
+            });
+          }
+
+          return [...list].sort((a, b) => {
+            const na = (a.name || '').toLowerCase();
+            const nb = (b.name || '').toLowerCase();
+            return na.localeCompare(nb);
+          });
         },
         shopId(){
             return this.shop?.id
@@ -457,42 +470,43 @@ export default {
               this.filterSubCategories = [];
             });
         },
-        async fetchBasicProducts(page = 1) {
+        fetchBasicProducts() {
             this.isBasicLoading = true;
-            try {
-                const params = { page, page_size: 20 };
-                if (this.searchKeyword) params['name__icontains'] = this.searchKeyword;
-                if (this.filterSubCategoryId) params['sub_category'] = this.filterSubCategoryId;
-                // Note: Le backend BasicProductViewSet ne supporte pas encore product__sub_category__category__id nativement
-                // sans modif, on pourrait l'ajouter si besoin.
+            const all = [];
 
-                const res = await basicProductsService.getBasicProducts(params);
-                const results = res.data.results || res.data || [];
-                const paginated = !!res.data.results;
-                
-                if (page === 1) {
-                  this.basicProducts = results;
+            const fetchPage = async (url) => {
+              try {
+                const res = url 
+                  ? await axiosService.get(url) 
+                  : await basicProductsService.getBasicProducts({ page_size: 500 });
+                  
+                const data = res.data;
+                const raw = data.results || data || [];
+                const results = Array.isArray(raw) ? raw : [];
+                all.push(...results);
+
+                if (data.next) {
+                  return fetchPage(data.next);
                 } else {
-                  // Éviter les doublons
-                  const existingIds = new Set(this.basicProducts.map(p => p.id));
-                  const newItems = results.filter(p => !existingIds.has(p.id));
-                  this.basicProducts = [...this.basicProducts, ...newItems];
+                  this.basicProducts = [...all].sort((a, b) => {
+                    const na = (a.name || '').toString().toLowerCase();
+                    const nb = (b.name || '').toString().toLowerCase();
+                    return na.localeCompare(nb);
+                  });
+                  this.basicProductsCount = all.length;
+                  this.hasMoreBasic = false;
+                  this.isBasicLoading = false;
                 }
-
-                this.hasMoreBasic = paginated && !!res.data.next;
-                this.currentBasicPage = page;
-                this.basicProductsCount = res.data.count || this.basicProducts.length;
-            } catch (e) {
-                console.error("[ShopProducts] Error fetching basic products:", e);
-                this.hasMoreBasic = false;
-            } finally {
+              } catch (err) {
+                console.error("[ShopProducts] Error fetching basic products:", err);
                 this.isBasicLoading = false;
-            }
+                this.hasMoreBasic = false;
+              }
+            };
+
+            fetchPage();
         },
         async loadMore(ev) {
-            if (this.hasMoreBasic) {
-              await this.fetchBasicProducts(this.currentBasicPage + 1);
-            }
             if (this.hasNextPage && this.shopId) {
               await this.fetchProducts(this.currentPage + 1);
             }
