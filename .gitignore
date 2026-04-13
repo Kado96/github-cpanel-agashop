@@ -19,8 +19,8 @@ env/
 backend/venv/
 
 # Build and Production
-dist/
-frontend/dist/
+# dist/ (Commenté pour le déploiement cPanel)
+# frontend/dist/ (Commenté pour le déploiement cPanel)
 build/
 frontend/android/app/build/
 frontend/android/build/
