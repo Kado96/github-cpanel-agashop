@@ -151,6 +151,14 @@ class ProductViewSet(viewsets.ModelViewSet):
 				'quantity': stats['total_quantity'] or 0
 			}
 		})
+	def get_serializer_context(self):
+		context = super().get_serializer_context()
+		# On met en cache toutes les fréquences de contrôle pour éviter le problème N+1
+		# dans le ProductSerializer.
+		context['frequency_cache'] = {
+			f.shop_id: f for f in ControlFrequency.objects.all()
+		}
+		return context
 
 	def get_serializer_class(self):
 		if self.action == "create":

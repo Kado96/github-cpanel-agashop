@@ -34,19 +34,23 @@ class ProductSerializer(serializers.ModelSerializer):
 
 	def to_representation(self, obj):
 		representation = super(ProductSerializer, self).to_representation(obj)
-		controlled = False # Par défaut, on considère que ce n'est pas contrôlé
+		controlled = False 
+		
+		# On utilise un cache contextuel pour éviter de requêter la fréquence à chaque produit
+		# (N+1 problem)
+		frequency = None
+		if 'frequency_cache' in self.context:
+			frequency = self.context['frequency_cache'].get(obj.shop_id)
+		else:
+			frequency = ControlFrequency.objects.filter(shop=obj.shop).first()
 		
 		if obj.last_control_at:
-			# Si le contrôle a été fait il y a moins de 10 secondes, on le considère "contrôlé" par défaut
-			# cela évite les problèmes de rafraîchissement immédiat et de micro-décalages d'horloge.
 			now = timezone.now()
 			delta = now - obj.last_control_at
 			
 			if delta.total_seconds() < 10:
 				controlled = True
-			
-			frequency = ControlFrequency.objects.filter(shop=obj.shop).first()
-			if frequency:
+			elif frequency:
 				f = frequency
 				if f.minutes > 0:
 					representation["control_minutes"] = f.minutes
