@@ -35,9 +35,16 @@ class ProductSerializer(serializers.ModelSerializer):
 	def to_representation(self, obj):
 		representation = super(ProductSerializer, self).to_representation(obj)
 		controlled = False 
+		now = timezone.now()
+		
+		# Debug info pour comprendre la production
+		representation["_debug_server_now"] = now.isoformat()
+		if obj.last_control_at:
+			representation["_debug_last_control"] = obj.last_control_at.isoformat()
+			delta = now - obj.last_control_at
+			representation["_debug_delta_sec"] = delta.total_seconds()
 		
 		# On utilise un cache contextuel pour éviter de requêter la fréquence à chaque produit
-		# (N+1 problem)
 		frequency = None
 		if 'frequency_cache' in self.context:
 			frequency = self.context['frequency_cache'].get(obj.shop_id)
@@ -45,23 +52,20 @@ class ProductSerializer(serializers.ModelSerializer):
 			frequency = ControlFrequency.objects.filter(shop=obj.shop).first()
 		
 		if obj.last_control_at:
-			now = timezone.now()
 			delta = now - obj.last_control_at
 			
-			if delta.total_seconds() < 10:
+			# Tolérance augmentée à 60s pour la production
+			if delta.total_seconds() < 60:
 				controlled = True
 			elif frequency:
 				f = frequency
 				if f.minutes > 0:
-					representation["control_minutes"] = f.minutes
 					diff_minutes = delta.total_seconds() / 60
 					controlled = diff_minutes <= f.minutes
 				elif f.hours > 0:
-					representation["control_hours"] = f.hours
 					diff_hours = delta.total_seconds() / 3600
 					controlled = diff_hours <= f.hours
 				elif f.days > 0:
-					representation["control_days"] = f.days
 					diff_days = (now.date() - obj.last_control_at.date()).days
 					controlled = diff_days <= f.days
 		
