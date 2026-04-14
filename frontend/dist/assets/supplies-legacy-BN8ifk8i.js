@@ -1,0 +1,1 @@
+System.register(["./index-legacy-pLdkQZrA.js"],(function(e,s){"use strict";var p;return{setters:[e=>{p=e.aa}],execute:function(){e("s",{getSupplies:(e,s={})=>p.get("/shops/supplies/",{params:{shop:e,...s}}),updateSupply:(e,s)=>p.patch(`/shops/supplies/${e}/`,s),deleteSupply:e=>p.delete(`/shops/supplies/${e}/`)})}}}));

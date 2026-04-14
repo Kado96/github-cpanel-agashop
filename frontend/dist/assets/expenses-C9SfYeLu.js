@@ -1,0 +1,1 @@
+import{aa as s}from"./index-9fzKyGLP.js";const t="/shops/expenses/",n={getExpenses(e,r={}){return s.get(t,{params:{shop:e,...r}})},getExpense(e){return s.get("".concat(t).concat(e,"/"))},createExpense(e){return s.post(t,e)},updateExpense(e,r){return s.put("".concat(t).concat(e,"/"),r)},deleteExpense(e){return s.delete("".concat(t).concat(e,"/"))}};export{n as e};

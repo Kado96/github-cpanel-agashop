@@ -1,0 +1,1 @@
+System.register(["./index-legacy-pLdkQZrA.js"],(function(e,t){"use strict";var s;return{setters:[e=>{s=e.aa}],execute:function(){e("c",{getCategories:(e={})=>s.get("/shops/categories/",{params:e}),getCategory:e=>s.get(`/shops/categories/${e}/`),createCategory:e=>s.post("/shops/categories/",e)})}}}));

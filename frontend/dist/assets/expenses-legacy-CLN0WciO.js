@@ -1,0 +1,1 @@
+System.register(["./index-legacy-pLdkQZrA.js"],(function(e,s){"use strict";var t;return{setters:[e=>{t=e.aa}],execute:function(){const s="/shops/expenses/";e("e",{getExpenses:(e,n={})=>t.get(s,{params:{shop:e,...n}}),getExpense:e=>t.get(`${s}${e}/`),createExpense:e=>t.post(s,e),updateExpense:(e,n)=>t.put(`${s}${e}/`,n),deleteExpense:e=>t.delete(`${s}${e}/`)})}}}));

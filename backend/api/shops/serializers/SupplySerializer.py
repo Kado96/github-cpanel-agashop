@@ -1,6 +1,6 @@
 from .dependancies import *
 
-class CreateSupplySerializer(serializers.ModelSerializer):
+class SupplyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supply
         fields = "__all__"
