@@ -1,4 +1,4 @@
 deployment:
   tasks:
-    - /bin/rsync -av backend/ /home/agashopb/api/ --exclude .git --exclude venv --exclude db.sqlite3 --exclude media --exclude __pycache__
-    - /bin/rsync -av --delete --exclude='cgi-bin' --exclude='.well-known' frontend/dist/ /home/agashopb/public_html/
+    - rsync -av backend/ /home/agashopb/api/ --exclude .git --exclude venv --exclude db.sqlite3 --exclude media --exclude __pycache__
+    - rsync -av --delete --exclude='cgi-bin' --exclude='.well-known' frontend/dist/ /home/agashopb/public_html/
