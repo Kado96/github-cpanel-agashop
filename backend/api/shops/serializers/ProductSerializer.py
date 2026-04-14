@@ -37,13 +37,6 @@ class ProductSerializer(serializers.ModelSerializer):
 		controlled = False 
 		now = timezone.now()
 		
-		# Debug info pour comprendre la production
-		representation["_debug_server_now"] = now.isoformat()
-		if obj.last_control_at:
-			representation["_debug_last_control"] = obj.last_control_at.isoformat()
-			delta = now - obj.last_control_at
-			representation["_debug_delta_sec"] = delta.total_seconds()
-		
 		# On utilise un cache contextuel pour éviter de requêter la fréquence à chaque produit
 		frequency = None
 		if 'frequency_cache' in self.context:

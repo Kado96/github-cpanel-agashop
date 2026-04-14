@@ -334,7 +334,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 				total_price=int(total_buy_price)
 			)
 		
-		return Response({"status":"Contrôle terminé avec succès (v1.0.4)"}, status=status.HTTP_200_OK)
+		return Response({"status":"Contrôle terminé avec succès"}, status=status.HTTP_200_OK)
 	
 
 
