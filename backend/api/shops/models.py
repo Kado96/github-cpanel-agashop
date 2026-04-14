@@ -50,6 +50,9 @@ class ControlFrequency(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self) -> str:
         return f"{self.days}j - {self.hours}h - {self.minutes}min"
     
@@ -58,6 +61,9 @@ class Category(models.Model):
     name = models.CharField(max_length=50)
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self) -> str:
         return self.name
@@ -68,6 +74,9 @@ class SubCategory(models.Model):
     name = models.CharField(max_length=50)
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['category', 'name']
 
     def __str__(self) -> str:
         return f"{self.category.name}  : {self.name}"
@@ -105,6 +114,7 @@ class Product(models.Model):
 
     class Meta:
         unique_together = "shop","product","sale_price"
+        ordering = ['-created_at']
 
 class SalePriceHistory(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -130,6 +140,9 @@ class Supply(models.Model):
     def __str__(self) -> str:
         return f" Achat du {self.created_at} de {self.product.name} - qt : {self.quantity} "
 
+    class Meta:
+        ordering = ['-created_at']
+
 
 class Sales(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -144,6 +157,9 @@ class Sales(models.Model):
 
     def __str__(self) -> str:
         return f" Vente de {self.product.name} - qt : {self.quantity} montant : {self.amount}"
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class Expense(models.Model):
