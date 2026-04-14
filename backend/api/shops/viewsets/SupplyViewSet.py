@@ -15,7 +15,7 @@ class SupplyViewSet(viewsets.ModelViewSet):
 	}
 
 	def get_serializer_class(self):
-		if self.action == "create":
+		if self.action in ["create", "update", "partial_update"]:
 			return SupplyCreateSerializer
 		return SupplySerializer
 
@@ -39,17 +39,17 @@ class SupplyViewSet(viewsets.ModelViewSet):
 				str_au = str_au.strftime("%Y-%m-%d")
 				queryset = self.queryset = self.queryset.filter(
 					created_at__gte=str_du, created_at__lte=str_au, product__shop=shop
-				).order_by('-id')
+				).order_by('-created_at')
 			else:
 				today = datetime.now().date()
 				if(not request.user.is_superuser):
 					queryset = self.queryset.filter(
 						product__shop=shop,
-					).order_by('-id')
+					).order_by('-created_at')
 				else:
 					queryset = self.queryset.filter(
 						product__shop=shop, user=request.user
-					).order_by('-id')
+					).order_by('-created_at')
 
 		tot = self._supply_totals(queryset)
 		page = self.paginate_queryset(queryset)
