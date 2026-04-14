@@ -355,7 +355,7 @@ export default {
         this.loading = false;
       }
     },
-    exportToExcel() {
+    async exportToExcel() {
        if (this.sales.length === 0) {
          this.showToastMsg('Aucune donnée à exporter', 'warning');
          return;
@@ -374,18 +374,10 @@ export default {
        XLSX.utils.book_append_sheet(wb, ws, "Ventes");
        
        const fileName = `Ventes_${this.startDate}_au_${this.endDate}.xlsx`;
-       saveWorkbook(wb, fileName);
+       await saveWorkbook(wb, fileName);
        this.showToastMsg('Export Excel réussi !', 'success');
     },
-    async showToastMsg(message, color = 'dark') {
-      const toast = await toastController.create({
-        message,
-        duration: 2000,
-        color,
-        position: 'bottom'
-      });
-      await toast.present();
-    },
+
     prevMonth() {
       const d = new Date(this.currentDate);
       d.setMonth(d.getMonth() - 1);

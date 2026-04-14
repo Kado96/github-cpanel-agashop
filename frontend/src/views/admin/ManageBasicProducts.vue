@@ -614,7 +614,7 @@ export default {
       this.showTostMsg(`${successCount} doublons supprimés avec succès.${errorCount > 0 ? ` (${errorCount} erreurs)` : ''}`, 'success', 5000);
       this.fetchBasicProducts();
     },
-    exportToExcel() {
+    async exportToExcel() {
       if (!this.filteredProducts || this.filteredProducts.length === 0) {
         this.showTostMsg("Aucun produit à exporter.", "warning", 3000);
         return;
@@ -631,7 +631,7 @@ export default {
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Catalogue");
-      saveWorkbook(wb, `Catalogue_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
+      await saveWorkbook(wb, `Catalogue_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
       
       this.showTostMsg("Catalogue exporté avec succès.", "success", 2000);
     }

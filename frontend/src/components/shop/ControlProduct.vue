@@ -222,10 +222,6 @@ export default {
                 this.errors.quantity.custom = true;
                 return false;
             }
-            if (!isNaN(max) && q >= max) {
-                this.showTostMsg("La quantité écoulée doit être > 0. Saisissez une quantité restante inférieure à la quantité disponible.", "warning", 4000);
-                return false;
-            }
             if (!this.productId) {
                 this.showTostMsg("Produit non disponible", "danger", 5000);
                 return false;

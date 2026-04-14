@@ -601,7 +601,7 @@ export default {
           this.errorOrRefresh(err, () => this.deleteShop(shopId));
         });
     },
-    exportToExcel() {
+    async exportToExcel() {
       if (!this.filteredShops || this.filteredShops.length === 0) {
         this.showTostMsg("Aucune boutique à exporter.", "warning", 3000);
         return;
@@ -621,7 +621,7 @@ export default {
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Boutiques");
-      saveWorkbook(wb, `Boutiques_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
+      await saveWorkbook(wb, `Boutiques_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
       
       this.showTostMsg("Liste exportée avec succès.", "success", 2000);
     }

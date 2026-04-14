@@ -265,62 +265,62 @@ class ProductViewSet(viewsets.ModelViewSet):
 				{"details": "La quantité restante ne peut pas être négative."},
 				status=status.HTTP_400_BAD_REQUEST,
 			)
-		# Si la nouvelle quantité est inférieure, c'est une Vente (Écoulement)
-		if quantity < product.quantity:
-			qt_vendu = product.quantity - quantity
-			product.quantity = quantity
-			product.last_control_at = timezone.now()
-			product.save()
+		# Toujours mettre à jour la date de contrôle
+		from django.utils import timezone
+		now_time = timezone.now()
+		
+		# On récupère l'objet frais pour garantir l'enregistrement
+		product_to_update = Product.objects.get(pk=product.id)
+		old_qty = product_to_update.quantity
+		
+		product_to_update.last_control_at = now_time
+		product_to_update.quantity = quantity
+		product_to_update.save()
 
-			sale_price = float(product.sale_price) if product.sale_price is not None else 0.0
+		if quantity < old_qty:
+			qt_vendu = old_qty - quantity
+			sale_price = float(product_to_update.sale_price) if product_to_update.sale_price is not None else 0.0
 			amount = sale_price * qt_vendu
 
 			Sales.objects.create(
 				user=request.user,
-				product=product,
+				product=product_to_update,
 				quantity=qt_vendu,
-				buy_price=float(product.buy_price),
+				buy_price=float(product_to_update.buy_price),
 				amount=amount
 			)
 			
-			# Historique pour la vente
 			History.objects.create(
-				shop_name=product.shop.name,
-				shop_owner=product.shop.owner.user.username,
-				shop_id=product.shop.id,
+				shop_name=product_to_update.shop.name,
+				shop_owner=product_to_update.shop.owner.user.username,
+				shop_id=product_to_update.shop.id,
 				action="Vente (Contrôle)",
-				product_name=product.name,
-				product_id=product.id,
+				product_name=product_to_update.name,
+				product_id=product_to_update.id,
 				quantity=qt_vendu,
 				unity_price=int(sale_price),
 				total_price=int(amount)
 			)
 
-		# Si la nouvelle quantité est supérieure, c'est un Achat (Réapprovisionnement)
-		elif quantity > product.quantity:
-			qt_ajout = quantity - product.quantity
-			product.quantity = quantity
-			product.last_control_at = timezone.now()
-			product.save()
-
-			buy_price = float(product.buy_price) if product.buy_price is not None else 0.0
+		elif quantity > old_qty:
+			qt_ajout = quantity - old_qty
+			buy_price = float(product_to_update.buy_price) if product_to_update.buy_price is not None else 0.0
 			total_buy_price = buy_price * qt_ajout
 
 			Supply.objects.create(
 				user=request.user,
-				product=product,
+				product=product_to_update,
 				quantity=qt_ajout,
 				total_buy_price=total_buy_price
 			)
 
-			# Historique pour l'achat
 			History.objects.create(
-				shop_name=product.shop.name,
-				shop_owner=product.shop.owner.user.username,
-				shop_id=product.shop.id,
+				shop_name=product_to_update.shop.name,
+				shop_owner=product_to_update.shop.owner.user.username,
+				shop_id=product_to_update.shop.id,
 				action="Achat (Contrôle)",
-				product_name=product.name,
-				product_id=product.id,
+				product_name=product_to_update.name,
+				product_id=product_to_update.id,
 				quantity=qt_ajout,
 				unity_price=int(buy_price),
 				total_price=int(total_buy_price)
@@ -345,6 +345,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 		product:Product = self.get_object()
 		quantity = serializer.validated_data.get("quantity")
 		total_buy_price = serializer.validated_data.get("total_buy_price")
+		created_at = serializer.validated_data.get("created_at") or timezone.now()
 
 		product.quantity += quantity
 		product.buy_price = round(total_buy_price/quantity)
@@ -354,7 +355,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 			user=request.user,
 			product = product,
 			quantity = quantity,
-			total_buy_price = total_buy_price
+			total_buy_price = total_buy_price,
+			created_at=created_at
 		)
 		supply.save()
 
@@ -385,6 +387,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 			unity_price=unity,
 			total_price=total_int,
+			created_at=created_at
 		)
 
 		return Response({"status":"Wahejeje kurangura"}, status=status.HTTP_200_OK)

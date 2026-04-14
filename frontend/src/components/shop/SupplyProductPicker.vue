@@ -377,7 +377,7 @@ export default {
     select(product) {
       modalController.dismiss(product, 'confirm');
     },
-    exportToExcel() {
+    async exportToExcel() {
       const shopProducts = this.$store?.state?.products || [];
       if (shopProducts.length === 0) {
         this.showTostMsg('Aucun produit dans votre boutique à exporter', 'warning');
@@ -399,7 +399,7 @@ export default {
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'MaBoutique');
-      saveWorkbook(wb, `AgaShop_MaBoutique_${new Date().toISOString().slice(0,10)}.xlsx`);
+      await saveWorkbook(wb, `AgaShop_MaBoutique_${new Date().toISOString().slice(0,10)}.xlsx`);
       
       this.showTostMsg('La liste des produits a été exportée avec succès', 'success');
     },

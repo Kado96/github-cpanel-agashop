@@ -293,7 +293,7 @@ export default {
         console.error("[CriticalArticlesList] Erreur catégories:", err);
       }
     },
-    exportToExcel() {
+    async exportToExcel() {
        if (this.filteredProducts.length === 0) {
          this.showToastMsg('Aucune alerte à exporter', 'warning');
          return;
@@ -311,18 +311,10 @@ export default {
        XLSX.utils.book_append_sheet(wb, ws, "Alertes_Stock");
        
        const fileName = `Alertes_Stock_${this.startDate}_au_${this.endDate}.xlsx`;
-       saveWorkbook(wb, fileName);
+       await saveWorkbook(wb, fileName);
        this.showToastMsg('Export Excel réussi !', 'success');
     },
-    async showToastMsg(message, color = 'dark') {
-      const toast = await toastController.create({
-        message,
-        duration: 2000,
-        color,
-        position: 'bottom'
-      });
-      await toast.present();
-    },
+
     async supplyItem(product) {
        const modal = await modalController.create({
          component: SupplyProduct,

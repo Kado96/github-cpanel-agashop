@@ -297,15 +297,20 @@ export default {
         this.showTostMsg(user_message, "danger",5000)
       }
     },
-    async showTostMsg(msg,type,duration){
+    async showToastMsg(msg, type, duration = 3000) {
         this.blurActiveElement(); // Fix aria-hidden focus warning in production
-        const  toast = await toastController.create({
+        const toast = await toastController.create({
             message: msg,
-            animated:true,
+            animated: true,
             duration: duration,
             color: type,
+            position: 'bottom'
         })
         toast.present()
+    },
+    // Alias for backward compatibility
+    async showTostMsg(msg, type, duration) {
+        return this.showToastMsg(msg, type, duration);
     },
     truncate(value, length) {
       if (value.length > length) {

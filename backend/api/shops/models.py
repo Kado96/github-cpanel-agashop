@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from api.accounts.models import Account, User
 
 
@@ -123,7 +124,7 @@ class Supply(models.Model):
     quantity = models.IntegerField(default=0)
     total_buy_price = models.FloatField(default=0)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
@@ -258,5 +259,5 @@ class History(models.Model):
     unity_price = models.IntegerField(null=True)
     total_price = models.IntegerField(null=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

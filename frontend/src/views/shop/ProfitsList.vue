@@ -403,7 +403,7 @@ export default {
         this.loading = false;
       }
     },
-    exportToExcel() {
+    async exportToExcel() {
        const data = [
          { 'Type': '💰 Marge sur Ventes', 'Montant (BIF)': this.totalSalesProfit },
          { 'Type': '💸 Dépenses', 'Montant (BIF)': this.totalExpenses },
@@ -415,18 +415,10 @@ export default {
        XLSX.utils.book_append_sheet(wb, ws, "Bénéfices");
        
        const fileName = `Benefices_${this.startDate}_au_${this.endDate}.xlsx`;
-       saveWorkbook(wb, fileName);
+       await saveWorkbook(wb, fileName);
        this.showToastMsg('Export Excel réussi !', 'success');
     },
-    async showToastMsg(message, color = 'dark') {
-      const toast = await toastController.create({
-        message,
-        duration: 2000,
-        color,
-        position: 'bottom'
-      });
-      await toast.present();
-    },
+
     prevMonth() {
       const d = new Date(this.currentDate);
       d.setMonth(d.getMonth() - 1);

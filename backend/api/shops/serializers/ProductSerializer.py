@@ -1,4 +1,5 @@
 from .dependancies import *
+from django.utils import timezone
 from datetime import timezone as tz
 
 class SubCategoryWithCategorySerializer(serializers.ModelSerializer):
@@ -33,14 +34,20 @@ class ProductSerializer(serializers.ModelSerializer):
 
 	def to_representation(self, obj):
 		representation = super(ProductSerializer, self).to_representation(obj)
-		controlled = None
+		controlled = False # Par défaut, on considère que ce n'est pas contrôlé
 		
 		if obj.last_control_at:
-			frequency = ControlFrequency.objects.filter(shop=obj.shop)
+			# Si le contrôle a été fait il y a moins de 10 secondes, on le considère "contrôlé" par défaut
+			# cela évite les problèmes de rafraîchissement immédiat et de micro-décalages d'horloge.
+			now = timezone.now()
+			delta = now - obj.last_control_at
+			
+			if delta.total_seconds() < 10:
+				controlled = True
+			
+			frequency = ControlFrequency.objects.filter(shop=obj.shop).first()
 			if frequency:
-				f = frequency[0]
-				now = datetime.now(tz=tz.utc)
-				delta = now - obj.last_control_at
+				f = frequency
 				if f.minutes > 0:
 					representation["control_minutes"] = f.minutes
 					diff_minutes = delta.total_seconds() / 60
@@ -53,9 +60,7 @@ class ProductSerializer(serializers.ModelSerializer):
 					representation["control_days"] = f.days
 					diff_days = (now.date() - obj.last_control_at.date()).days
 					controlled = diff_days <= f.days
-		else:
-			controlled = False
-
+		
 		representation["controlled"] = controlled
 		return representation
 
@@ -88,3 +93,4 @@ class ControlProductSerializer(serializers.Serializer):
 class SupplyProductSerializer(serializers.Serializer):
 	quantity = serializers.IntegerField(required=True)
 	total_buy_price = serializers.FloatField(required=True)
+	created_at = serializers.DateTimeField(required=False, allow_null=True)

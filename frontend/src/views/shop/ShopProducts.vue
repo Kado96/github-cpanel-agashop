@@ -525,7 +525,7 @@ export default {
         getShopProduct(basicId) {
             return (this.$store.state.products || []).find(p => p.product && p.product.id === basicId);
         },
-        exportToExcel() {
+        async exportToExcel() {
             if (this.basicProducts.length === 0) {
                 this.showTostMsg('Aucun produit à exporter', 'warning');
                 return;
@@ -549,7 +549,7 @@ export default {
             XLSX.utils.book_append_sheet(wb, ws, "Catalogue");
             
             const fileName = `Catalogue_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`;
-            saveWorkbook(wb, fileName);
+            await saveWorkbook(wb, fileName);
             this.showTostMsg('Export Excel réussi !', 'success');
         },
         async toggleInShop(basic){

@@ -86,6 +86,17 @@
                     </ion-item>
                   </div>
                   <div class="ion-margin-vertical">
+                    <ion-label class="ion-padding-start">Date de l'achat</ion-label>
+                    <ion-datetime
+                      presentation="date"
+                      v-model="product.created_at"
+                      locale="fr-FR"
+                      :show-default-buttons="true"
+                      done-text="Valider"
+                      cancel-text="Annuler"
+                    ></ion-datetime>
+                  </div>
+                  <div class="ion-margin-vertical">
                     <ion-text>P.A.U : {{ buyPriceDisplay === '—' ? '' : buyPriceDisplay + ' BIF' }}</ion-text>
                   </div>
                   <div class="ion-margin-vertical" v-if="hasBenefit">
@@ -135,7 +146,8 @@ import {
   IonSpinner,
   IonText,
   modalController,
-  IonRow
+  IonRow,
+  IonDatetime
 } from '@ionic/vue';
 import { close, arrowBackOutline } from 'ionicons/icons';
 import { suppliesService, productsService } from '../../services/api';
@@ -175,7 +187,8 @@ export default {
       product: {
         quantity: '',
         total_buy_price: '',
-        sale_price: ''
+        sale_price: '',
+        created_at: ''
       },
       loading: false,
       errors: {
@@ -200,6 +213,7 @@ export default {
     const s = this.supplyProp;
     this.product.quantity = String(s.quantity ?? '');
     this.product.total_buy_price = String(s.total_buy_price ?? '');
+    this.product.created_at = s.created_at ?? new Date().toISOString();
     const sp = s.product?.sale_price ?? s.product?.product?.sale_price;
     const n = Number(sp);
     this.product.sale_price = (sp != null && sp !== '' && !isNaN(n) && n > 0) ? String(n) : '';
@@ -328,7 +342,11 @@ export default {
       const salePrice = this.effectiveSalePrice;
       const buyPrice = quantity > 0 ? total_buy_price / quantity : 0;
       try {
-        const res = await suppliesService.updateSupply(this.supplyId, { quantity, total_buy_price });
+        const res = await suppliesService.updateSupply(this.supplyId, { 
+          quantity, 
+          total_buy_price,
+          created_at: this.product.created_at 
+        });
         this.updatedSupply = res?.data ?? null;
         if (salePrice != null && !isNaN(salePrice) && salePrice > 0) {
           await productsService.changeSalePrice(this.productId, salePrice, Math.round(buyPrice));

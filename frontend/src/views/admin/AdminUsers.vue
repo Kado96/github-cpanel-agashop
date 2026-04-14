@@ -411,7 +411,7 @@ export default {
           this.errorOrRefresh(err, () => this.deleteUser(userId));
         });
     },
-    exportToExcel() {
+    async exportToExcel() {
       if (!this.filteredUsers || this.filteredUsers.length === 0) {
         this.showTostMsg("Aucun agent à exporter.", "warning", 3000);
         return;
@@ -430,7 +430,7 @@ export default {
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Agents");
-      saveWorkbook(wb, `Agents_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
+      await saveWorkbook(wb, `Agents_AgaShop_${new Date().toISOString().split('T')[0]}.xlsx`);
 
       this.showTostMsg("Liste exportée avec succès.", "success", 2000);
     }

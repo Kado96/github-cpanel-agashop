@@ -385,7 +385,7 @@ export default {
         this.loading = false;
       }
     },
-    exportToExcel() {
+    async exportToExcel() {
        if (this.expenses.length === 0) {
          this.showToastMsg('Aucune donnée à exporter', 'warning');
          return;
@@ -404,7 +404,7 @@ export default {
        XLSX.utils.book_append_sheet(wb, ws, "Dépenses");
        
        const fileName = `Depenses_${this.startDate}_au_${this.endDate}.xlsx`;
-       saveWorkbook(wb, fileName);
+       await saveWorkbook(wb, fileName);
        this.showToastMsg('Export Excel réussi !', 'success');
     },
     prevMonth() {
@@ -505,15 +505,7 @@ export default {
         console.error("[ExpensesList] Erreur delete:", err);
       }
     },
-    async showToastMsg(message, color = 'dark') {
-      const toast = await toastController.create({
-        message,
-        duration: 2000,
-        color,
-        position: 'bottom'
-      });
-      await toast.present();
-    },
+
     getShopFromLocalStorage() {
       try {
         const s = localStorage.getItem('current_shop');
