@@ -1,6 +1,4 @@
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/agashopb/api/
-    - export FRONTPATH=/home/agashopb/public_html/
-    - /bin/rsync -av backend/ $DEPLOYPATH --exclude .git --exclude venv --exclude db.sqlite3 --exclude media --exclude __pycache__
-    - /bin/rsync -av --delete --exclude='cgi-bin' --exclude='.well-known' frontend/dist/ $FRONTPATH
+    - /bin/rsync -av backend/ /home/agashopb/api/ --exclude .git --exclude venv --exclude db.sqlite3 --exclude media --exclude __pycache__
+    - /bin/rsync -av --delete --exclude='cgi-bin' --exclude='.well-known' frontend/dist/ /home/agashopb/public_html/
