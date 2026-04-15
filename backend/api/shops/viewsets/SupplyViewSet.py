@@ -78,6 +78,10 @@ class SupplyViewSet(viewsets.ModelViewSet):
 			product = instance.product
 			product.quantity += diff
 			product.save(update_fields=['quantity'])
+		
+		# Forcer la prise en compte de la date si elle est présente
+		if 'created_at' in serializer.validated_data:
+			instance.created_at = serializer.validated_data['created_at']
 			
 		serializer.save()
 

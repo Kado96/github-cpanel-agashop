@@ -187,7 +187,7 @@ class Expense(models.Model):
     receipt_number = models.CharField(max_length=100, blank=True, null=True)
     receipt_file = models.FileField(upload_to="expenses/receipts/", blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):

@@ -3,6 +3,6 @@ from .ShopSerializer import ShopSerializer, ControlFrequencySerializer
 from .ProductSerializer import ProductSerializer,ControlProductSerializer,SupplyProductSerializer, BasicProductSerializer, ProductCreateSerializer
 from .ProductSerializer import CategorySerializer,SubCategorySerializer
 from .SalesSerializer import SalesSerializer
-from .SupplySerializer import SupplySerializer,CreateSupplySerializer
+from .SupplySerializer import SupplySerializer, SupplyCreateSerializer
 from .HistorySerializer import HistorySerializer
 from .ExpenseSerializer import ExpenseSerializer

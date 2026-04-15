@@ -6,7 +6,10 @@ def sync():
     dest = '/home/agashopb/api'
     
     # Liste des dossiers/fichiers à ignorer
-    ignore_list = ['.git', 'venv', 'db.sqlite3', 'media', '__pycache__']
+    ignore_list = [
+        '.git', 'venv', 'db.sqlite3', 'media', '__pycache__', 
+        '.env', '.vscode', '.cursor', 'pyrightconfig.json', '.gitignore'
+    ]
     
     print(f"--- Démarrage de la synchronisation de {src} vers {dest} ---")
     
