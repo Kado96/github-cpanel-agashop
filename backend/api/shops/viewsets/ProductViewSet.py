@@ -208,22 +208,24 @@ class ProductViewSet(viewsets.ModelViewSet):
 			product = product,
 			quantity = serializer.validated_data.get("quantity"),
 			total_buy_price = serializer.validated_data.get("quantity")*serializer.validated_data.get("buy_price")
-		)
 		# Gestion de l'historique de la date pour le nouvel ajout
 		raw_created_at = request.data.get("created_at")
 		created_at = None
+		
+		from django.utils.dateparse import parse_datetime, parse_date
+		from django.utils import timezone
+		from django.utils.timezone import make_aware
+		import datetime
+
 		if raw_created_at:
-			from django.utils.dateparse import parse_datetime, parse_date
-			from django.utils import timezone
 			parsed_dt = parse_datetime(raw_created_at)
 			if parsed_dt:
 				created_at = parsed_dt
 			else:
 				parsed_d = parse_date(raw_created_at)
 				if parsed_d:
-					from django.utils.timezone import make_aware
-					import datetime
 					created_at = make_aware(datetime.datetime.combine(parsed_d, datetime.time.min))
+					
 		if not created_at:
 			created_at = timezone.now()
 
@@ -373,20 +375,22 @@ class ProductViewSet(viewsets.ModelViewSet):
 		product:Product = self.get_object()
 		quantity = serializer.validated_data.get("quantity")
 		total_buy_price = serializer.validated_data.get("total_buy_price")
-		
 		# On extrait directement depuis request.data pour contourner le comportement silencieux de DRF
 		raw_created_at = request.data.get("created_at")
 		created_at = None
+		
+		from django.utils.dateparse import parse_datetime, parse_date
+		from django.utils import timezone
+		from django.utils.timezone import make_aware
+		import datetime
+
 		if raw_created_at:
-			from django.utils.dateparse import parse_datetime, parse_date
 			parsed_dt = parse_datetime(raw_created_at)
 			if parsed_dt:
 				created_at = parsed_dt
 			else:
 				parsed_d = parse_date(raw_created_at)
 				if parsed_d:
-					from django.utils.timezone import make_aware
-					import datetime
 					created_at = make_aware(datetime.datetime.combine(parsed_d, datetime.time.min))
 
 		if not created_at:
