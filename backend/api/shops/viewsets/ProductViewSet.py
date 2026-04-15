@@ -208,6 +208,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 			product = product,
 			quantity = serializer.validated_data.get("quantity"),
 			total_buy_price = serializer.validated_data.get("quantity")*serializer.validated_data.get("buy_price")
+		)
 		# Gestion de l'historique de la date pour le nouvel ajout
 		raw_created_at = request.data.get("created_at")
 		created_at = None
