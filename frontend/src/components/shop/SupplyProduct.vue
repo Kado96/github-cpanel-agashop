@@ -91,9 +91,6 @@
                       presentation="date"
                       v-model="product.created_at"
                       locale="fr-FR"
-                      :show-default-buttons="true"
-                      done-text="Valider"
-                      cancel-text="Annuler"
                     ></ion-datetime>
                   </div>
                   <div class="ion-margin-vertical">
@@ -189,7 +186,8 @@ export default {
         IonSpinner,
         IonRow,
         IonGrid,
-        IonCol
+        IonCol,
+        IonDatetime
     },
     props:["productProp"],
     data() {

@@ -1,1 +1,0 @@
-System.register(["./index-legacy-pLdkQZrA.js"],(function(e,t){"use strict";var r,n;return{setters:[e=>{r=e.bK,n=e.a7}],execute:function(){e("Share",r("Share",{web:()=>n((()=>t.import("./web-legacy-ZmarXjh7.js")),void 0).then((e=>new e.ShareWeb))}))}}}));

@@ -1,1 +1,0 @@
-import{aa as s}from"./index-9fzKyGLP.js";const t={getSupplies(p,e={}){return s.get("/shops/supplies/",{params:{shop:p,...e}})},updateSupply(p,e){return s.patch("/shops/supplies/".concat(p,"/"),e)},deleteSupply(p){return s.delete("/shops/supplies/".concat(p,"/"))}};export{t as s};

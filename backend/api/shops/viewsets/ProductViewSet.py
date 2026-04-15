@@ -209,6 +209,25 @@ class ProductViewSet(viewsets.ModelViewSet):
 			quantity = serializer.validated_data.get("quantity"),
 			total_buy_price = serializer.validated_data.get("quantity")*serializer.validated_data.get("buy_price")
 		)
+		# Gestion de l'historique de la date pour le nouvel ajout
+		raw_created_at = request.data.get("created_at")
+		created_at = None
+		if raw_created_at:
+			from django.utils.dateparse import parse_datetime, parse_date
+			from django.utils import timezone
+			parsed_dt = parse_datetime(raw_created_at)
+			if parsed_dt:
+				created_at = parsed_dt
+			else:
+				parsed_d = parse_date(raw_created_at)
+				if parsed_d:
+					from django.utils.timezone import make_aware
+					import datetime
+					created_at = make_aware(datetime.datetime.combine(parsed_d, datetime.time.min))
+		if not created_at:
+			created_at = timezone.now()
+
+		supply.created_at = created_at
 		supply.save()
 
 		# sub_category peut être None (BasicProduct.sub_category est null=True)
@@ -238,7 +257,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 			quantity=serializer.validated_data.get("quantity"),
 
 			unity_price=int(unity) if unity is not None else None,
-			total_price=int(total) if total is not None else None
+			total_price=int(total) if total is not None else None,
+			created_at=created_at
 		)
 
 		serializer = ProductSerializer(product).data
@@ -353,7 +373,24 @@ class ProductViewSet(viewsets.ModelViewSet):
 		product:Product = self.get_object()
 		quantity = serializer.validated_data.get("quantity")
 		total_buy_price = serializer.validated_data.get("total_buy_price")
-		created_at = serializer.validated_data.get("created_at") or timezone.now()
+		
+		# On extrait directement depuis request.data pour contourner le comportement silencieux de DRF
+		raw_created_at = request.data.get("created_at")
+		created_at = None
+		if raw_created_at:
+			from django.utils.dateparse import parse_datetime, parse_date
+			parsed_dt = parse_datetime(raw_created_at)
+			if parsed_dt:
+				created_at = parsed_dt
+			else:
+				parsed_d = parse_date(raw_created_at)
+				if parsed_d:
+					from django.utils.timezone import make_aware
+					import datetime
+					created_at = make_aware(datetime.datetime.combine(parsed_d, datetime.time.min))
+
+		if not created_at:
+			created_at = timezone.now()
 
 		product.quantity += quantity
 		product.buy_price = round(total_buy_price/quantity)
@@ -465,30 +502,43 @@ class ProductViewSet(viewsets.ModelViewSet):
 		permission_classes=[IsAuthenticated])
 	def cancel_control(self, request, pk):
 		product = self.get_object()
-		# On cherche la dernière vente pour ce produit
-		last_sale = Sales.objects.filter(product=product).order_by('-created_at').first()
-		if not last_sale:
-			return Response({"details": "Aucun contrôle à annuler pour ce produit"}, status=status.HTTP_400_BAD_REQUEST)
 		
-		# Restauration du stock
-		product.quantity += last_sale.quantity
-		product.last_control_at = None # On réinitialise pour qu'il réapparaisse dans "Non contrôlés"
-		product.save()
+		# On réinitialise la date pour qu'il réapparaisse dans "Non contrôlés"
+		product.last_control_at = None
 		
-		# Suppression de l'entrée correspondante en historique
-		# On cherche une vente avec la même quantité et pour le même produit, proche du moment de la vente
-		history_entry = History.objects.filter(
+		# On cherche la dernière action historique de type "Contrôle" pour ce produit
+		last_history = History.objects.filter(
 			product_id=product.id,
-			action="Vente",
-			quantity=last_sale.quantity
+			action__icontains="Contrôle"
 		).order_by('-created_at').first()
 		
-		if history_entry:
-			history_entry.delete()
+		if last_history:
+			if "Vente" in last_history.action:
+				# Restauration du stock (on rajoute la quantité vendue)
+				product.quantity += last_history.quantity
+				# Suppression de la vente correspondante
+				last_sale = Sales.objects.filter(
+					product=product,
+					quantity=last_history.quantity
+				).order_by('-created_at').first()
+				if last_sale:
+					last_sale.delete()
+					
+			elif "Achat" in last_history.action:
+				# Restauration du stock (on retire la quantité achetée)
+				product.quantity -= last_history.quantity
+				# Suppression de l'approvisionnement (Supply) correspondant
+				last_supply = Supply.objects.filter(
+					product=product,
+					quantity=last_history.quantity
+				).order_by('-created_at').first()
+				if last_supply:
+					last_supply.delete()
 			
-		# Suppression de la vente
-		last_sale.delete()
-		
+			# Suppression de l'entrée d'historique
+			last_history.delete()
+
+		product.save()
 		return Response({"status": "Kontrole yasubijwe inyuma"}, status=status.HTTP_200_OK)
 	
 class CategoryViewSet(viewsets.ModelViewSet):

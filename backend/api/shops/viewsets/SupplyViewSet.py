@@ -71,19 +71,23 @@ class SupplyViewSet(viewsets.ModelViewSet):
 	@transaction.atomic()
 	def perform_update(self, serializer):
 		instance = self.get_object()
-		# Si la quantité change, on ajuste le stock du produit
+		
+		# Ajustement du stock au besoin
 		if 'quantity' in serializer.validated_data:
 			new_qty = serializer.validated_data['quantity']
 			diff = new_qty - instance.quantity
 			product = instance.product
 			product.quantity += diff
 			product.save(update_fields=['quantity'])
-		
-		# Forcer la prise en compte de la date si elle est présente
-		if 'created_at' in serializer.validated_data:
-			instance.created_at = serializer.validated_data['created_at']
 			
 		serializer.save()
+
+		# Forcer la mise à jour de created_at si elle est dans la requête
+		new_date_str = self.request.data.get('created_at')
+		if new_date_str:
+			instance.created_at = new_date_str
+			instance.save(update_fields=['created_at'])
+
 
 	@transaction.atomic()
 	def perform_destroy(self, instance):

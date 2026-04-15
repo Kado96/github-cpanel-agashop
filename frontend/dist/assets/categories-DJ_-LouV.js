@@ -1,1 +1,0 @@
-import{aa as r}from"./index-9fzKyGLP.js";const o={getCategories(e={}){return r.get("/shops/categories/",{params:e})},getCategory(e){return r.get("/shops/categories/".concat(e,"/"))},createCategory(e){return r.post("/shops/categories/",e)}};export{o as c};

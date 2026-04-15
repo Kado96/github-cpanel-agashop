@@ -144,6 +144,9 @@ import {
   IonText,
   modalController,
   IonRow,
+  IonCol,
+  IonGrid,
+  IonLabel,
   IonDatetime
 } from '@ionic/vue';
 import { close, arrowBackOutline } from 'ionicons/icons';
@@ -171,7 +174,11 @@ export default {
     IonFooter,
     IonSpinner,
     IonText,
-    IonRow
+    IonRow,
+    IonCol,
+    IonGrid,
+    IonLabel,
+    IonDatetime
   },
   props: {
     supplyProp: {
@@ -210,7 +217,14 @@ export default {
     const s = this.supplyProp;
     this.product.quantity = String(s.quantity ?? '');
     this.product.total_buy_price = String(s.total_buy_price ?? '');
-    this.product.created_at = s.created_at ?? new Date().toISOString();
+    
+    // Correction pour iOS/Ionic Datetime (Retirer les microsecondes de Django : "Z" après 6 chiffres)
+    let rawDate = s.created_at ?? new Date().toISOString();
+    if (typeof rawDate === 'string') {
+      rawDate = rawDate.replace(/(\.\d{3})\d+(Z)?$/, '$1$2');
+    }
+    this.product.created_at = rawDate;
+
     const sp = s.product?.sale_price ?? s.product?.product?.sale_price;
     const n = Number(sp);
     this.product.sale_price = (sp != null && sp !== '' && !isNaN(n) && n > 0) ? String(n) : '';

@@ -1,1 +1,0 @@
-System.register(["./index-legacy-pLdkQZrA.js"],(function(e,s){"use strict";var t;return{setters:[e=>{t=e.aa}],execute:function(){e("s",{getSales:(e,s={})=>t.get("/shops/sales/",{params:{shop:e,...s}})})}}}));
