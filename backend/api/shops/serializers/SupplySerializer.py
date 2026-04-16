@@ -1,5 +1,5 @@
 from .dependancies import *
-from api.shops.serializers.ShopSerializer import CategorySerializer, SubCategorySerializer
+from .ProductSerializer import CategorySerializer, SubCategorySerializer
 
 class ProductMinimalSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
