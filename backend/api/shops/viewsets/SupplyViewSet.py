@@ -38,51 +38,37 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		).order_by('-created_at', '-id')
 
 	def list(self, request, *args, **kwargs):
-		try:
-			from api.shops.utils import parse_date_range
-			# On récupère les paramètres de manière plus flexible
-			shop_id = request.query_params.get('shop')
-			str_du = request.query_params.get('du') or request.query_params.get('created_at__gte')
-			str_au = request.query_params.get('au') or request.query_params.get('created_at__lte')
-			
-			# Queryset de base avec optimisations
-			queryset = self.get_queryset()
-			
-			# Filtrage par boutique (seulement si spécifié et valide)
-			if shop_id and str(shop_id).isdigit():
-				queryset = queryset.filter(product__shop_id=shop_id)
-			
-			# Filtrage par date (seulement si les deux sont fournis et valides)
-			if str_du and str_au:
-				start_dt, end_dt = parse_date_range(str_du, str_au)
-				if start_dt and end_dt:
-					queryset = queryset.filter(created_at__range=(start_dt, end_dt))
+		queryset = self.filter_queryset(self.get_queryset())
+		
+		# Application manuelle des filtres de boutique et date si fournis
+		shop_id = request.query_params.get('shop')
+		if shop_id and str(shop_id).isdigit():
+			queryset = queryset.filter(product__shop_id=shop_id)
+		
+		from api.shops.utils import parse_date_range
+		str_du = request.query_params.get('du') or request.query_params.get('created_at__gte')
+		str_au = request.query_params.get('au') or request.query_params.get('created_at__lte')
+		start_dt, end_dt = parse_date_range(str_du, str_au)
+		if start_dt and end_dt:
+			queryset = queryset.filter(created_at__range=(start_dt, end_dt))
 
-			# Calcul des totaux sur le même queryset
-			tot = self._supply_totals(queryset)
-			
-			# Pagination standard Django Rest Framework
-			page = self.paginate_queryset(queryset)
-			if page is not None:
-				serializer = self.get_serializer(page, many=True)
-				response = self.get_paginated_response(serializer.data)
-				response.data['totals'] = tot['totals']
-				response.data['totals_quantity'] = tot['totals_quantity']
-				return response
+		# Calcul des totaux
+		tot = self._supply_totals(queryset)
+		
+		page = self.paginate_queryset(queryset)
+		if page is not None:
+			serializer = self.get_serializer(page, many=True)
+			response = self.get_paginated_response(serializer.data)
+			response.data['totals'] = tot['totals']
+			response.data['totals_quantity'] = tot['totals_quantity']
+			return response
 
-			# Cas de repli : liste brute
-			serializer = self.get_serializer(queryset, many=True)
-			return Response({
-				'results': serializer.data,
-				'totals': tot['totals'],
-				'totals_quantity': tot['totals_quantity']
-			})
-		except Exception as e:
-			import traceback
-			return Response({
-				"error": str(e),
-				"traceback": traceback.format_exc()
-			}, status=500)
+		serializer = self.get_serializer(queryset, many=True)
+		return Response({
+			'results': serializer.data,
+			'totals': tot['totals'],
+			'totals_quantity': tot['totals_quantity']
+		})
 
 	@transaction.atomic()
 	def perform_create(self, serializer):
