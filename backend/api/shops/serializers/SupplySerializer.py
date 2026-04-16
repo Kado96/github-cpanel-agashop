@@ -2,8 +2,8 @@ from .dependancies import *
 from .ProductSerializer import CategorySerializer, SubCategorySerializer
 
 class ProductMinimalSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
-    sub_category = SubCategorySerializer(read_only=True)
+    category = CategorySerializer(source='product.sub_category.category', read_only=True)
+    sub_category = SubCategorySerializer(source='product.sub_category', read_only=True)
     class Meta:
         model = Product
         fields = ["id", "name", "category", "sub_category"]

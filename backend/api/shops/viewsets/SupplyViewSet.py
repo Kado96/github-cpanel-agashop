@@ -32,8 +32,8 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		return Supply.objects.all().select_related(
 			'product', 
 			'product__shop', 
-			'product__category', 
-			'product__sub_category', 
+			'product__product__sub_category', 
+			'product__product__sub_category__category', 
 			'user'
 		).order_by('-created_at', '-id')
 
