@@ -19,50 +19,56 @@ class MinimalBasicProductDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "image", "sub_category"]
 
 # 2. Le Serializer de Produit (Boutique) imbriqué
-class ProductDetailSerializer(serializers.ModelSerializer):
-    # Mapping direct pour éviter tout malentendu
-    name = serializers.ReadOnlyField(source='product.name')
-    image_url = serializers.SerializerMethodField()
-    category = serializers.SerializerMethodField()
-    sub_category = serializers.SerializerMethodField()
-    
-    # Champ 'product' imbriqué pour supply.product.product
-    product = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = ["id", "name", "image_url", "category", "sub_category", "product", "sale_price", "quantity"]
-
-    def get_image_url(self, obj):
-        try: return obj.product.image.url if obj.product.image else None
-        except: return None
-
-    def get_category(self, obj):
-        if not obj.product or not obj.product.sub_category: return None
-        return {"id": obj.product.sub_category.category.id, "name": obj.product.sub_category.category.name}
-
-    def get_sub_category(self, obj):
-        if not obj.product: return None
-        return {"id": obj.product.sub_category.id, "name": obj.product.sub_category.name}
-
-    def get_product(self, obj):
-        if not obj.product: return None
-        return {"id": obj.product.id, "name": obj.product.name}
-
 class SupplySerializer(serializers.ModelSerializer):
-    # 'product' est le cœur du problème d'affichage
-    product_detail = ProductDetailSerializer(source='product', read_only=True)
-    
     class Meta:
         model = Supply
-        fields = ["id", "user", "product", "product_detail", "quantity", "total_buy_price", "sale_price", "created_at"]
+        fields = "__all__"
     
     def to_representation(self, instance):
-        data = super().to_representation(instance)
-        # On injecte l'objet détaillé à la place de l'ID pour le frontend
-        if 'product_detail' in data:
-            data['product'] = data.pop('product_detail')
-        return data
+        """
+        Version ultra-robuste qui ne plante JAMAIS, même si des données manquent.
+        """
+        try:
+            # 1. Structure de base
+            ret = super().to_representation(instance)
+            
+            # 2. Accès sécurisé aux relations
+            p = instance.product
+            bp = p.product if p else None  # BasicProduct
+            sc = bp.sub_category if bp else None
+            cat = sc.category if sc else None
+            
+            # 3. Construction de l'objet attendu par le frontend
+            # Structure : supply.product.product.sub_category.category
+            ret['product'] = {
+                "id": p.id if p else instance.product_id,
+                "name": bp.name if bp else "Produit inconnu",
+                "sale_price": p.sale_price if p else 0,
+                "quantity": p.quantity if p else 0,
+                "product": {
+                    "id": bp.id if bp else None,
+                    "name": bp.name if bp else "Produit inconnu",
+                    "image": bp.image.url if (bp and bp.image) else None,
+                    "sub_category": {
+                        "id": sc.id if sc else None,
+                        "name": sc.name if sc else None,
+                        "category": {
+                            "id": cat.id if cat else None,
+                            "name": cat.name if cat else None
+                        }
+                    }
+                }
+            }
+            return ret
+        except Exception:
+            # Secours ultime : on renvoie la version standard si la personnalisation échoue
+            return super().to_representation(instance)
+
+class SupplyCreateSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(required=False, allow_null=True)
+    class Meta:
+        model = Supply
+        fields = ["id", "user", "product", "quantity", "total_buy_price", "sale_price", "created_at"]
 
 # 4. Pour la création (plus léger)
 class SupplyCreateSerializer(serializers.ModelSerializer):

@@ -38,35 +38,30 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		).order_by('-created_at', '-id')
 
 	def list(self, request, *args, **kwargs):
-		queryset = self.get_queryset()
-		
-		# Filtre shop simplifié
+		# 1. Utilisation du queryset standard avec filtres
+		queryset = self.filter_queryset(self.get_queryset())
 		shop_id = request.query_params.get('shop')
 		if shop_id:
 			queryset = queryset.filter(product__shop_id=shop_id)
-		
-		# Totaux sur le queryset complet du shop
+
+		# 2. Calcul des totaux
 		tot = self._supply_totals(queryset)
 		
-		# On essaye de paginer
+		# 3. Pagination standard
 		page = self.paginate_queryset(queryset)
 		if page is not None:
 			serializer = self.get_serializer(page, many=True)
 			response = self.get_paginated_response(serializer.data)
-			# Injection des totaux et d'un compteur de debug
 			response.data['totals'] = tot['totals']
 			response.data['totals_quantity'] = tot['totals_quantity']
-			response.data['debug_count'] = len(serializer.data)
 			return response
 
-		# Si pas de pagination
+		# 4. Fallback non paginé
 		serializer = self.get_serializer(queryset, many=True)
 		return Response({
-			'count': queryset.count(),
 			'results': serializer.data,
 			'totals': tot['totals'],
-			'totals_quantity': tot['totals_quantity'],
-			'debug_count': len(serializer.data)
+			'totals_quantity': tot['totals_quantity']
 		})
 
 	@transaction.atomic()
