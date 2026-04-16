@@ -113,6 +113,23 @@ class SupplyViewSet(viewsets.ModelViewSet):
 			product.save(update_fields=['quantity'])
 			
 		serializer.save()
+		instance = serializer.instance
+
+		# Mise à jour du prix de vente si fourni
+		sale_price = self.request.data.get('sale_price')
+		if sale_price and float(sale_price) > 0:
+			product = instance.product
+			old_price = product.sale_price
+			new_price = float(sale_price)
+			if old_price != new_price:
+				SalePriceHistory.objects.create(
+					product=product,
+					old_price=old_price,
+					new_price=new_price,
+					user=self.request.user
+				)
+				product.sale_price = new_price
+				product.save(update_fields=['sale_price'])
 
 		# Date personnalisée
 		new_date_str = self.request.data.get('created_at')

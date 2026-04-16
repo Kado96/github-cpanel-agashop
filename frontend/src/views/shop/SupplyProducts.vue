@@ -120,6 +120,12 @@
             <br />
             <ion-text>P.A.T : {{ money(supply?.total_buy_price ?? 0) }} BIF</ion-text>
             <br />
+            <ion-text>
+              P.V.U : 
+              <span v-if="supply?.sale_price > 0">{{ money(supply.sale_price) }} BIF</span>
+              <span v-else class="missing-price">....</span>
+            </ion-text>
+            <br />
             <ion-text color="primary">Date : {{ formatDateTime(supply?.created_at) }}</ion-text>
           </ion-label>
         </ion-item>
@@ -640,6 +646,13 @@ ion-item {
     color: var(--ion-color-primary);
     font-weight: 500;
     margin-top: 2px;
+  }
+  .missing-price {
+    text-decoration: underline;
+    text-decoration-color: #ffc409; /* warning color (yellowish) */
+    text-decoration-style: solid;
+    font-weight: bold;
+    color: #ffc409;
   }
 }
 

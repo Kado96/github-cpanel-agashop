@@ -88,6 +88,8 @@
                   <div class="ion-margin-vertical">
                     <ion-label class="ion-padding-start">Date de l'achat (optionnel)</ion-label>
                     <ion-datetime
+                      id="supply-date"
+                      name="created_at"
                       presentation="date"
                       v-model="product.created_at"
                       locale="fr-FR"

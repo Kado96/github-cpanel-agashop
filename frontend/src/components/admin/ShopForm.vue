@@ -200,6 +200,7 @@
                         <ion-item>
                           <ion-input
                             id="shop-province"
+                            name="province"
                             label="Province"
                             label-placement="stacked"
                             v-model="formData.province"
@@ -212,6 +213,7 @@
                         <ion-item>
                           <ion-input
                             id="shop-commune"
+                            name="commune"
                             label="Commune"
                             label-placement="stacked"
                             v-model="formData.commune"
@@ -224,6 +226,7 @@
                         <ion-item>
                           <ion-input
                             id="shop-quarter"
+                            name="quarter"
                             label="Quartier"
                             label-placement="stacked"
                             v-model="formData.quarter"
@@ -236,6 +239,7 @@
                         <ion-item>
                           <ion-input
                             id="shop-address"
+                            name="address"
                             label="Adresse précise"
                             label-placement="stacked"
                             v-model="formData.address"
@@ -250,6 +254,7 @@
                       <ion-item>
                         <ion-select
                           id="shop-agent"
+                          name="agentId"
                           label="Agent responsable"
                           label-placement="stacked"
                           v-model="formData.agentId"
@@ -278,6 +283,7 @@
                       <ion-item>
                         <ion-select
                           id="shop-subscription-plan"
+                          name="subscription_plan"
                           label="Plan d'abonnement"
                           label-placement="stacked"
                           v-model="formData.subscription_plan"
@@ -300,6 +306,7 @@
                       <ion-item>
                         <ion-input
                           id="shop-trial-start"
+                          name="trial_start_date"
                           label="Date de début"
                           label-placement="stacked"
                           type="date"
@@ -312,6 +319,7 @@
                       <ion-item>
                         <ion-input
                           id="shop-trial-end"
+                          name="trial_end_date"
                           label="Date de fin"
                           label-placement="stacked"
                           type="date"
@@ -327,6 +335,7 @@
                       <ion-label for="shop-active">Boutique Active</ion-label>
                       <ion-checkbox
                         id="shop-active"
+                        name="is_active"
                         slot="end"
                         v-model="formData.is_active"
                       ></ion-checkbox>
@@ -339,6 +348,7 @@
                       <ion-label for="shop-payment-mode">Mode de paiement actif</ion-label>
                       <ion-checkbox
                         id="shop-payment-mode"
+                        name="payment_mode_active"
                         slot="end"
                         v-model="formData.payment_mode_active"
                       ></ion-checkbox>

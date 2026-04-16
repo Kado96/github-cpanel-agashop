@@ -162,6 +162,7 @@
                     <ion-item class="disabled-item">
                       <ion-input 
                         id="product-benefice"
+                        name="benefice"
                         v-model="benefice"
                         disabled
                         type="number">

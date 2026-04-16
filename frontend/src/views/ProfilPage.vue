@@ -85,6 +85,8 @@
                     <div class="ion-margin-vertical password-field">
                         <ion-item>
                             <ion-input 
+                                id="profile-password"
+                                name="password"
                                 label-placement="stacked"
                                 v-model="user.password"
                                 label="Mot de passe (laisser vide = pas de changement, ou entrer nouveau mot de passe)"

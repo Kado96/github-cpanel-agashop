@@ -88,6 +88,8 @@
                   <div class="ion-margin-vertical">
                     <ion-label class="ion-padding-start">Date de l'achat</ion-label>
                     <ion-datetime
+                      id="edit-supply-date"
+                      name="created_at"
                       presentation="date"
                       v-model="product.created_at"
                       locale="fr-FR"
@@ -356,6 +358,7 @@ export default {
         const res = await suppliesService.updateSupply(this.supplyId, { 
           quantity, 
           total_buy_price,
+          sale_price: salePrice,
           created_at: this.product.created_at 
         });
         this.updatedSupply = res?.data ?? null;
