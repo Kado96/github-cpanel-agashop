@@ -38,37 +38,38 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		).order_by('-created_at', '-id')
 
 	def list(self, request, *args, **kwargs):
-		import traceback
 		try:
 			from api.shops.utils import parse_date_range
-			shop = request.query_params.get('shop')
-			# Support both legacy 'du/au' and DRF-style filter names
+			shop_id = request.query_params.get('shop')
 			str_du = request.query_params.get('du') or request.query_params.get('created_at__gte')
 			str_au = request.query_params.get('au') or request.query_params.get('created_at__lte')
 			
-			queryset = self.filter_queryset(self.get_queryset())
+			combined_queryset = self.get_queryset()
 			
-			if shop:
-				# Filtrage par boutique
-				queryset = queryset.filter(product__shop=shop)
-				
-			# Filtrage par plage de dates robuste (indépendant du shop)
+			# Application des filtres manuels
+			if shop_id:
+				combined_queryset = combined_queryset.filter(product__shop_id=shop_id)
+			
 			start_dt, end_dt = parse_date_range(str_du, str_au)
 			if start_dt:
-				queryset = queryset.filter(created_at__gte=start_dt)
+				combined_queryset = combined_queryset.filter(created_at__gte=start_dt)
 			if end_dt:
-				queryset = queryset.filter(created_at__lte=end_dt)
+				combined_queryset = combined_queryset.filter(created_at__lte=end_dt)
 
-			tot = self._supply_totals(queryset)
-			page = self.paginate_queryset(queryset)
+			# Calcul des totaux sur le queryset filtré
+			tot = self._supply_totals(combined_queryset)
+			
+			# Pagination
+			page = self.paginate_queryset(combined_queryset)
 			if page is not None:
-				serializer = self.get_serializer(page, many=True, context={'request': request})
+				serializer = self.get_serializer(page, many=True)
 				response = self.get_paginated_response(serializer.data)
 				response.data['totals'] = tot['totals']
 				response.data['totals_quantity'] = tot['totals_quantity']
 				return response
 
-			serializer = self.get_serializer(queryset, many=True, context={'request': request})
+			# Cas non paginé
+			serializer = self.get_serializer(combined_queryset, many=True)
 			return Response({
 				'results': serializer.data,
 				'totals': tot['totals'],
@@ -76,17 +77,10 @@ class SupplyViewSet(viewsets.ModelViewSet):
 			})
 		except Exception as e:
 			import traceback
-			tb = traceback.format_exc()
-			print("--- CRITICAL ERROR IN SupplyViewSet.list ---")
-			print(tb)
-			return Response(
-				{
-					"error": "Une erreur s'est produite lors de la récupération des achats.", 
-					"details": str(e),
-					"traceback": tb
-				}, 
-				status=500
-			)
+			return Response({
+				"error": str(e),
+				"traceback": traceback.format_exc()
+			}, status=500)
 
 	@transaction.atomic()
 	def perform_create(self, serializer):

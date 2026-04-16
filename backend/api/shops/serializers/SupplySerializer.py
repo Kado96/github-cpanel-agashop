@@ -1,47 +1,45 @@
 from .dependancies import *
 
-class ProductMinimalSerializer(serializers.ModelSerializer):
-    # Utilisation de ReadOnlyField avec source : plus performant et robuste
-    name = serializers.ReadOnlyField(source='product.name', default="Produit inconnu")
-    image_url = serializers.SerializerMethodField()
-    category_name = serializers.ReadOnlyField(source='product.sub_category.category.name', default=None)
-    sub_category_name = serializers.ReadOnlyField(source='product.sub_category.name', default=None)
-    
-    # Simulation de la structure imbriquée attendue par le frontend
-    product = serializers.SerializerMethodField()
+# 1. Classes minimales pour éviter les imports circulaires
+class MinimalCategoryDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["id", "name"]
 
+class MinimalSubCategoryDetailSerializer(serializers.ModelSerializer):
+    category = MinimalCategoryDetailSerializer(read_only=True)
+    class Meta:
+        model = SubCategory
+        fields = ["id", "name", "category"]
+
+class MinimalBasicProductDetailSerializer(serializers.ModelSerializer):
+    sub_category = MinimalSubCategoryDetailSerializer(read_only=True)
+    class Meta:
+        model = BasicProduct
+        fields = ["id", "name", "image", "sub_category"]
+
+# 2. Le Serializer de Produit (Boutique) imbriqué
+class ProductMinimalSerializer(serializers.ModelSerializer):
+    # 'product' est le lien vers BasicProduct dans votre modèle
+    product = MinimalBasicProductDetailSerializer(read_only=True)
+    name = serializers.ReadOnlyField(source='product.name')
+    
     class Meta:
         model = Product
-        fields = ["id", "name", "image_url", "category_name", "sub_category_name", "product", "sale_price", "quantity"]
+        fields = ["id", "name", "product", "sale_price", "quantity"]
 
-    def get_image_url(self, obj):
-        try:
-            if obj.product and obj.product.image:
-                return obj.product.image.url
-        except:
-            pass
-        return None
+# 3. Le Serializer principal pour la liste des Achats
+class SupplySerializer(serializers.ModelSerializer):
+    product = ProductMinimalSerializer(read_only=True)
+    user_name = serializers.ReadOnlyField(source='user.username')
+    
+    class Meta:
+        model = Supply
+        fields = "__all__"
 
-    def get_product(self, obj):
-        # Pour supply.product.product.sub_category
-        if not obj.product: return None
-        return {
-            "id": obj.product.id,
-            "name": obj.product.name,
-            "sub_category": {
-                "id": obj.product.sub_category.id if obj.product.sub_category else None,
-                "name": obj.product.sub_category.name if obj.product.sub_category else None
-            }
-        }
-
+# 4. Pour la création (plus léger)
 class SupplyCreateSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(required=False, allow_null=True)
     class Meta:
         model = Supply
         fields = ["id", "user", "product", "quantity", "total_buy_price", "sale_price", "created_at"]
-
-class SupplySerializer(serializers.ModelSerializer):
-    product = ProductMinimalSerializer(read_only=True)
-    class Meta:
-        model = Supply
-        fields = "__all__"
