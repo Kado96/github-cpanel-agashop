@@ -42,21 +42,22 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		try:
 			from api.shops.utils import parse_date_range
 			shop = request.query_params.get('shop')
-			str_du = request.query_params.get('created_at__gte')
-			str_au = request.query_params.get('created_at__lte')		
+			# Support both legacy 'du/au' and DRF-style filter names
+			str_du = request.query_params.get('du') or request.query_params.get('created_at__gte')
+			str_au = request.query_params.get('au') or request.query_params.get('created_at__lte')
 			
 			queryset = self.filter_queryset(self.get_queryset())
 			
 			if shop:
-				# Filtrage spécifique par boutique
+				# Filtrage par boutique
 				queryset = queryset.filter(product__shop=shop)
 				
-				# Filtrage par plage de dates robuste
-				start_dt, end_dt = parse_date_range(str_du, str_au)
-				if start_dt:
-					queryset = queryset.filter(created_at__gte=start_dt)
-				if end_dt:
-					queryset = queryset.filter(created_at__lte=end_dt)
+			# Filtrage par plage de dates robuste (indépendant du shop)
+			start_dt, end_dt = parse_date_range(str_du, str_au)
+			if start_dt:
+				queryset = queryset.filter(created_at__gte=start_dt)
+			if end_dt:
+				queryset = queryset.filter(created_at__lte=end_dt)
 
 			tot = self._supply_totals(queryset)
 			page = self.paginate_queryset(queryset)
