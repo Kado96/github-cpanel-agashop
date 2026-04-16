@@ -38,36 +38,35 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		).order_by('-created_at', '-id')
 
 	def list(self, request, *args, **kwargs):
-		queryset = self.filter_queryset(self.get_queryset())
+		queryset = self.get_queryset()
 		
-		# Application manuelle des filtres de boutique et date si fournis
+		# Filtre shop simplifié
 		shop_id = request.query_params.get('shop')
-		if shop_id and str(shop_id).isdigit():
+		if shop_id:
 			queryset = queryset.filter(product__shop_id=shop_id)
 		
-		from api.shops.utils import parse_date_range
-		str_du = request.query_params.get('du') or request.query_params.get('created_at__gte')
-		str_au = request.query_params.get('au') or request.query_params.get('created_at__lte')
-		start_dt, end_dt = parse_date_range(str_du, str_au)
-		if start_dt and end_dt:
-			queryset = queryset.filter(created_at__range=(start_dt, end_dt))
-
-		# Calcul des totaux
+		# Totaux sur le queryset complet du shop
 		tot = self._supply_totals(queryset)
 		
+		# On essaye de paginer
 		page = self.paginate_queryset(queryset)
 		if page is not None:
 			serializer = self.get_serializer(page, many=True)
 			response = self.get_paginated_response(serializer.data)
+			# Injection des totaux et d'un compteur de debug
 			response.data['totals'] = tot['totals']
 			response.data['totals_quantity'] = tot['totals_quantity']
+			response.data['debug_count'] = len(serializer.data)
 			return response
 
+		# Si pas de pagination
 		serializer = self.get_serializer(queryset, many=True)
 		return Response({
+			'count': queryset.count(),
 			'results': serializer.data,
 			'totals': tot['totals'],
-			'totals_quantity': tot['totals_quantity']
+			'totals_quantity': tot['totals_quantity'],
+			'debug_count': len(serializer.data)
 		})
 
 	@transaction.atomic()
