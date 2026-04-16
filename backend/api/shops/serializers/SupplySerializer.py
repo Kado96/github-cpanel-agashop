@@ -26,43 +26,57 @@ class SupplySerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         """
-        Version ultra-robuste qui ne plante JAMAIS, même si des données manquent.
+        Version 100% manuelle qui évite les plantages internes de DRF sur les champs automatiques.
+        Ne fait jamais appel à super().to_representation en cas d'erreur.
         """
         try:
-            # 1. Structure de base
-            ret = super().to_representation(instance)
-            
-            # 2. Accès sécurisé aux relations
             p = instance.product
-            bp = p.product if p else None  # BasicProduct
+            bp = p.product if p else None
             sc = bp.sub_category if bp else None
             cat = sc.category if sc else None
             
-            # 3. Construction de l'objet attendu par le frontend
-            # Structure : supply.product.product.sub_category.category
-            ret['product'] = {
-                "id": p.id if p else instance.product_id,
-                "name": bp.name if bp else "Produit inconnu",
-                "sale_price": p.sale_price if p else 0,
-                "quantity": p.quantity if p else 0,
+            created_at = None
+            if instance.created_at:
+                created_at = instance.created_at.isoformat()
+                if not created_at.endswith('Z') and '+' not in created_at:
+                    created_at += 'Z'
+            
+            return {
+                "id": instance.id,
+                "quantity": instance.quantity,
+                "total_buy_price": instance.total_buy_price,
+                "sale_price": instance.sale_price,
+                "created_at": created_at,
+                "user": getattr(instance, 'user_id', None),
                 "product": {
-                    "id": bp.id if bp else None,
-                    "name": bp.name if bp else "Produit inconnu",
-                    "image": bp.image.url if (bp and bp.image) else None,
-                    "sub_category": {
-                        "id": sc.id if sc else None,
-                        "name": sc.name if sc else None,
-                        "category": {
-                            "id": cat.id if cat else None,
-                            "name": cat.name if cat else None
+                    "id": getattr(p, 'id', getattr(instance, 'product_id', None)),
+                    "name": getattr(bp, 'name', "Produit inconnu"),
+                    "sale_price": getattr(p, 'sale_price', 0),
+                    "quantity": getattr(p, 'quantity', 0),
+                    "product": {
+                        "id": getattr(bp, 'id', None),
+                        "name": getattr(bp, 'name', "Produit inconnu"),
+                        "image": bp.image.url if (bp and getattr(bp, 'image', None)) else None,
+                        "sub_category": {
+                            "id": getattr(sc, 'id', None),
+                            "name": getattr(sc, 'name', None),
+                            "category": {
+                                "id": getattr(cat, 'id', None),
+                                "name": getattr(cat, 'name', None)
+                            }
                         }
                     }
                 }
             }
-            return ret
-        except Exception:
-            # Secours ultime : on renvoie la version standard si la personnalisation échoue
-            return super().to_representation(instance)
+        except Exception as e:
+            # Fallback absolu si un getter manuel pète (très improbable avec les getattr)
+            return {
+                "id": getattr(instance, 'id', None),
+                "quantity": getattr(instance, 'quantity', 0),
+                "total_buy_price": getattr(instance, 'total_buy_price', 0),
+                "product": None,
+                "error": str(e)
+            }
 
 class SupplyCreateSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(required=False, allow_null=True)
