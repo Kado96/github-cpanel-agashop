@@ -28,42 +28,58 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		)
 		return {'totals': agg['sum_pat'] or 0, 'totals_quantity': agg['sum_qty'] or 0}
 
+	def get_queryset(self):
+		return Supply.objects.all().select_related(
+			'product', 
+			'product__shop', 
+			'product__category', 
+			'product__sub_category', 
+			'user'
+		).order_by('-created_at', '-id')
+
 	def list(self, request, *args, **kwargs):
-		from api.shops.utils import parse_date_range
-		shop = request.query_params.get('shop')
-		str_du = request.query_params.get('created_at__gte')
-		str_au = request.query_params.get('created_at__lte')		
-		
-		queryset = self.filter_queryset(self.get_queryset())
-		
-		if shop:
-			# Filtrage spécifique par boutique
-			queryset = queryset.filter(product__shop=shop)
+		import traceback
+		try:
+			from api.shops.utils import parse_date_range
+			shop = request.query_params.get('shop')
+			str_du = request.query_params.get('created_at__gte')
+			str_au = request.query_params.get('created_at__lte')		
 			
-			# Filtrage par plage de dates robuste
-			start_dt, end_dt = parse_date_range(str_du, str_au)
-			if start_dt:
-				queryset = queryset.filter(created_at__gte=start_dt)
-			if end_dt:
-				queryset = queryset.filter(created_at__lte=end_dt)
+			queryset = self.filter_queryset(self.get_queryset())
+			
+			if shop:
+				# Filtrage spécifique par boutique
+				queryset = queryset.filter(product__shop=shop)
 				
-			queryset = queryset.order_by('-created_at', '-id')
+				# Filtrage par plage de dates robuste
+				start_dt, end_dt = parse_date_range(str_du, str_au)
+				if start_dt:
+					queryset = queryset.filter(created_at__gte=start_dt)
+				if end_dt:
+					queryset = queryset.filter(created_at__lte=end_dt)
 
-		tot = self._supply_totals(queryset)
-		page = self.paginate_queryset(queryset)
-		if page is not None:
-			serializer = self.get_serializer(page, many=True, context={'request': request})
-			response = self.get_paginated_response(serializer.data)
-			response.data['totals'] = tot['totals']
-			response.data['totals_quantity'] = tot['totals_quantity']
-			return response
+			tot = self._supply_totals(queryset)
+			page = self.paginate_queryset(queryset)
+			if page is not None:
+				serializer = self.get_serializer(page, many=True, context={'request': request})
+				response = self.get_paginated_response(serializer.data)
+				response.data['totals'] = tot['totals']
+				response.data['totals_quantity'] = tot['totals_quantity']
+				return response
 
-		serializer = self.get_serializer(queryset, many=True, context={'request': request})
-		return Response({
-			'results': serializer.data,
-			'totals': tot['totals'],
-			'totals_quantity': tot['totals_quantity']
-		})
+			serializer = self.get_serializer(queryset, many=True, context={'request': request})
+			return Response({
+				'results': serializer.data,
+				'totals': tot['totals'],
+				'totals_quantity': tot['totals_quantity']
+			})
+		except Exception as e:
+			print("--- CRITICAL ERROR IN SupplyViewSet.list ---")
+			traceback.print_exc()
+			return Response(
+				{"error": "Une erreur s'est produite lors de la récupération des achats.", "details": str(e)}, 
+				status=500
+			)
 
 	@transaction.atomic()
 	def perform_create(self, serializer):
