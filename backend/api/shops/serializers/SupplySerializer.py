@@ -27,8 +27,13 @@ class ProductMinimalSerializer(serializers.ModelSerializer):
         return obj.product.name if (obj.product and hasattr(obj.product, 'name')) else "Produit inconnu"
 
     def get_image(self, obj):
-        if obj.product and hasattr(obj.product, 'image') and obj.product.image:
-            return obj.product.image.url if hasattr(obj.product.image, 'url') else str(obj.product.image)
+        try:
+            # Sécurité maximale pour l'image
+            if obj.product and obj.product.image:
+                return obj.product.image.url
+        except Exception:
+            # Si le fichier n'existe pas physiquement, on renvoie null au lieu de planter
+            pass
         return None
 
     def get_category(self, obj):
