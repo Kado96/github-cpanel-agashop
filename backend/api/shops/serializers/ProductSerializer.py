@@ -94,4 +94,5 @@ class ControlProductSerializer(serializers.Serializer):
 class SupplyProductSerializer(serializers.Serializer):
 	quantity = serializers.IntegerField(required=True)
 	total_buy_price = serializers.FloatField(required=True)
+	sale_price = serializers.FloatField(required=False, allow_null=True)
 	created_at = serializers.DateTimeField(required=False, allow_null=True)

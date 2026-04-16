@@ -15,7 +15,7 @@
 
           <ion-title color="light">
             <div class="header-title-container">
-              <span>Mes Achats</span>
+              <span>MesAchats</span>
             </div>
           </ion-title>
 
@@ -329,7 +329,8 @@ export default {
       return (this.supplies || []).filter((s) => {
         const q = Number(s?.quantity ?? 0);
         const t = Number(s?.total_buy_price ?? 0);
-        return q > 0 && t > 0;
+        // On affiche tout ce qui a au moins une quantité OU un prix (donc presque tout)
+        return q > 0 || t > 0;
       });
     },
     filteredDisplayedSupplies() {
@@ -354,25 +355,20 @@ export default {
       }
 
       return [...list].sort((a, b) => {
-        const na = (a?.product?.name || a?.product?.product?.name || '').toLowerCase();
-        const nb = (b?.product?.name || b?.product?.product?.name || '').toLowerCase();
-        return na.localeCompare(nb);
+        const da = new Date(a?.created_at || '1970-01-01').getTime();
+        const db = new Date(b?.created_at || '1970-01-01').getTime();
+        if (isNaN(da) || isNaN(db)) return 0;
+        return db - da; // Décroissant : le plus récent en premier
       });
     },
    },
-   beforeMount() {
-    this.$store.state.shop = this.getShopFromLocalStorage();
-    this.checkCurrentShop();
-    const existing = this.$store.state.supplies;
-    const hasResults = existing?.results?.length > 0;
-    this.fetchCategories();
-    if (!hasResults) this.fetchSupplies();
-    else {
-      this.supplies = existing.results ?? [];
-      this.totals = existing.totals ?? null;
-      this.totals_quantity = existing.totals_quantity ?? null;
-    }
-   },
+    beforeMount() {
+      this.$store.state.shop = this.getShopFromLocalStorage();
+      this.checkCurrentShop();
+      this.fetchCategories();
+      // On force systématiquement le chargement pour avoir les données fraîches de la boutique
+      this.fetchSupplies();
+    },
    methods:{
        fetchCategories() {
          return categoriesService.getCategories()
@@ -406,7 +402,12 @@ export default {
           const pageNumber = typeof page === 'number' ? page : 1;
           
           this.loading = true;
-          if (pageNumber === 1) this.dateRange = { du: '', au: '' };
+          if (pageNumber === 1) {
+            this.dateRange = { du: '', au: '' };
+            this.keyword = '';
+            this.filterCategoryId = null;
+            this.filterSubCategoryId = null;
+          }
 
           suppliesService.getSupplies(this.shopId, { page: pageNumber, page_size: 20 })
             .then((res) => {
@@ -446,10 +447,11 @@ export default {
        setMode(m) {
          this.mode = m;
        },
-       filterSupplies(list, q) {
-         const k = (q || '').toLowerCase();
-         return (list || []).filter((x) => JSON.stringify(x).toLowerCase().includes(k));
-       },
+        filterSupplies(list, q) {
+          const k = (q || '').trim().toLowerCase();
+          if (!k) return list; // Si la recherche est vide ou espace, on affiche tout
+          return (list || []).filter((x) => JSON.stringify(x).toLowerCase().includes(k));
+        },
        performDeepSearch(du, au) {
          this.loading = true;
          this.dateRange = { du: du || '', au: au || '' };

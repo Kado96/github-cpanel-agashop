@@ -210,25 +210,9 @@ class ProductViewSet(viewsets.ModelViewSet):
 			total_buy_price = serializer.validated_data.get("quantity")*serializer.validated_data.get("buy_price")
 		)
 		# Gestion de l'historique de la date pour le nouvel ajout
+		from api.shops.utils import safe_parse_datetime
 		raw_created_at = request.data.get("created_at")
-		created_at = None
-		
-		from django.utils.dateparse import parse_datetime, parse_date
-		from django.utils import timezone
-		from django.utils.timezone import make_aware
-		import datetime
-
-		if raw_created_at:
-			parsed_dt = parse_datetime(raw_created_at)
-			if parsed_dt:
-				created_at = parsed_dt
-			else:
-				parsed_d = parse_date(raw_created_at)
-				if parsed_d:
-					created_at = make_aware(datetime.datetime.combine(parsed_d, datetime.time.min))
-					
-		if not created_at:
-			created_at = timezone.now()
+		created_at = safe_parse_datetime(raw_created_at) or timezone.now()
 
 		supply.created_at = created_at
 		supply.save()
@@ -376,29 +360,30 @@ class ProductViewSet(viewsets.ModelViewSet):
 		product:Product = self.get_object()
 		quantity = serializer.validated_data.get("quantity")
 		total_buy_price = serializer.validated_data.get("total_buy_price")
-		# On extrait directement depuis request.data pour contourner le comportement silencieux de DRF
-		raw_created_at = request.data.get("created_at")
-		created_at = None
-		
-		from django.utils.dateparse import parse_datetime, parse_date
+		from api.shops.utils import safe_parse_datetime
 		from django.utils import timezone
-		from django.utils.timezone import make_aware
-		import datetime
-
-		if raw_created_at:
-			parsed_dt = parse_datetime(raw_created_at)
-			if parsed_dt:
-				created_at = parsed_dt
-			else:
-				parsed_d = parse_date(raw_created_at)
-				if parsed_d:
-					created_at = make_aware(datetime.datetime.combine(parsed_d, datetime.time.min))
-
-		if not created_at:
-			created_at = timezone.now()
+		
+		raw_created_at = request.data.get("created_at")
+		created_at = safe_parse_datetime(raw_created_at) or timezone.now()
 
 		product.quantity += quantity
+		
+		# Mise à jour du prix d'achat
 		product.buy_price = round(total_buy_price/quantity)
+		
+		# Mise à jour du prix de vente si fourni (nouveau besoin utilisateur)
+		sale_price = request.data.get('sale_price')
+		if sale_price and float(sale_price) > 0:
+			new_sale_price = float(sale_price)
+			if product.sale_price != new_sale_price:
+				SalePriceHistory.objects.create(
+					product=product,
+					old_price=product.sale_price,
+					new_price=new_sale_price,
+					user=request.user
+				)
+				product.sale_price = new_sale_price
+
 		product.save()
 				
 		supply = Supply(

@@ -25,29 +25,23 @@ class SalesViewSet(viewsets.ModelViewSet):
 	}
 
 	def list(self, request, *args, **kwargs):
+		from api.shops.utils import parse_date_range
 		str_du = request.query_params.get('created_at__gte')
 		str_au = request.query_params.get('created_at__lte')
 		shop = request.query_params.get('shop')
 
-		totals = {}
-
 		queryset = self.filter_queryset(self.get_queryset())
-		if(shop):
-			if(str_du and str_au):
-				str_au = datetime.strptime(str_au, "%Y-%m-%d")+timedelta(days=1)
-				str_au = str_au.strftime("%Y-%m-%d")
-				queryset = self.queryset = self.queryset.filter(
-					created_at__gte=str_du, created_at__lte=str_au, product__shop=shop
-				).order_by('-id')
-			else:
-				if(not request.user.is_superuser):
-					queryset = self.queryset.filter(
-						product__shop=shop,
-					).order_by('-id')
-				else:
-					queryset = self.queryset.filter(
-						product__shop=shop, user=request.user
-					).order_by('-id')
+		
+		if shop:
+			queryset = queryset.filter(product__shop=shop)
+			
+			start_dt, end_dt = parse_date_range(str_du, str_au)
+			if start_dt:
+				queryset = queryset.filter(created_at__gte=start_dt)
+			if end_dt:
+				queryset = queryset.filter(created_at__lte=end_dt)
+				
+			queryset = queryset.order_by('-id')
 
 		page = self.paginate_queryset(queryset)
 		if page is not None:
@@ -71,3 +65,16 @@ class SalesViewSet(viewsets.ModelViewSet):
 
 		response.data["totals"] = totals
 		return response
+
+	@transaction.atomic()
+	def perform_create(self, serializer):
+		from api.shops.utils import safe_parse_datetime
+		instance = serializer.save()
+		
+		# Forcer la date si fournie (format robuste)
+		raw_date = self.request.data.get('created_at')
+		if raw_date:
+			parsed_date = safe_parse_datetime(raw_date)
+			if parsed_date:
+				instance.created_at = parsed_date
+				instance.save(update_fields=['created_at'])

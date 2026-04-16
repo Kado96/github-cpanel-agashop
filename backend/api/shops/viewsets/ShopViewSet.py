@@ -407,12 +407,12 @@ class ShopViewSet(viewsets.ModelViewSet):
 		b_sales=0
 		b_supplies=0
 
+		from api.shops.utils import parse_date_range
 		if(str_du and str_au):
-			str_au = datetime.strptime(str_au, "%Y-%m-%d")+timedelta(days=1)
-			str_au = str_au.strftime("%Y-%m-%d")
-
+			start_dt, end_dt = parse_date_range(str_du, str_au)
+			
 			sales_f = Sales.objects.filter(
-				created_at__gte=str_du, created_at__lte=str_au, product__shop=shop.id
+				created_at__gte=start_dt, created_at__lte=end_dt, product__shop=shop.id
 			)
 			sales = sales_f.aggregate(
 				total_sales=models.Sum('quantity'),
@@ -422,7 +422,7 @@ class ShopViewSet(viewsets.ModelViewSet):
 				b_sales = getBeneficeSales(sales_f)
 
 			supply_f = Supply.objects.filter(
-				created_at__gte=str_du, created_at__lte=str_au, product__shop=shop.id,
+				created_at__gte=start_dt, created_at__lte=end_dt, product__shop=shop.id,
 				quantity__gt=0, total_buy_price__gt=0,
 			)
 			supply = supply_f.aggregate(

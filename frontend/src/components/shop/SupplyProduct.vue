@@ -336,11 +336,9 @@ export default {
                 await productsService.supplyProduct(this.productId, { 
                     quantity, 
                     total_buy_price,
+                    sale_price: salePrice,
                     created_at: this.product.created_at 
                 });
-                if (salePrice != null && !isNaN(salePrice) && salePrice > 0) {
-                    await productsService.changeSalePrice(this.productId, salePrice, Math.round(buyPrice));
-                }
                 this.productProp.quantity = (this.productProp.quantity || 0) + parseInt(this.product.quantity, 10);
                 this.showTostMsg("Opération réussie avec succès", "success", 5000);
                 modalController.dismiss(null, "cancel");

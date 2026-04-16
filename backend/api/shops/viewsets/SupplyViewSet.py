@@ -29,47 +29,79 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		return {'totals': agg['sum_pat'] or 0, 'totals_quantity': agg['sum_qty'] or 0}
 
 	def list(self, request, *args, **kwargs):
+		from api.shops.utils import parse_date_range
 		shop = request.query_params.get('shop')
 		str_du = request.query_params.get('created_at__gte')
 		str_au = request.query_params.get('created_at__lte')		
+		
 		queryset = self.filter_queryset(self.get_queryset())
-		if(shop):
-			if(str_du and str_au):
-				str_au = datetime.strptime(str_au, "%Y-%m-%d")+timedelta(days=1)
-				str_au = str_au.strftime("%Y-%m-%d")
-				queryset = self.queryset = self.queryset.filter(
-					created_at__gte=str_du, created_at__lte=str_au, product__shop=shop
-				).order_by('-created_at')
-			else:
-				today = datetime.now().date()
-				if(not request.user.is_superuser):
-					queryset = self.queryset.filter(
-						product__shop=shop,
-					).order_by('-created_at')
-				else:
-					queryset = self.queryset.filter(
-						product__shop=shop, user=request.user
-					).order_by('-created_at')
+		
+		if shop:
+			# Filtrage spécifique par boutique
+			queryset = queryset.filter(product__shop=shop)
+			
+			# Filtrage par plage de dates robuste
+			start_dt, end_dt = parse_date_range(str_du, str_au)
+			if start_dt:
+				queryset = queryset.filter(created_at__gte=start_dt)
+			if end_dt:
+				queryset = queryset.filter(created_at__lte=end_dt)
+				
+			queryset = queryset.order_by('-created_at', '-id')
 
 		tot = self._supply_totals(queryset)
 		page = self.paginate_queryset(queryset)
 		if page is not None:
-			serializer = self.get_serializer(
-				page,
-				many=True,
-				context={'request': request},
-			)
+			serializer = self.get_serializer(page, many=True, context={'request': request})
 			response = self.get_paginated_response(serializer.data)
 			response.data['totals'] = tot['totals']
 			response.data['totals_quantity'] = tot['totals_quantity']
 			return response
 
-		response.data['totals'] = tot['totals']
-		response.data['totals_quantity'] = tot['totals_quantity']
-		return response
+		serializer = self.get_serializer(queryset, many=True, context={'request': request})
+		return Response({
+			'results': serializer.data,
+			'totals': tot['totals'],
+			'totals_quantity': tot['totals_quantity']
+		})
+
+	@transaction.atomic()
+	def perform_create(self, serializer):
+		from api.shops.utils import safe_parse_datetime
+		instance = serializer.save()
+		
+		# Mise à jour du stock
+		product = instance.product
+		product.quantity += instance.quantity
+		
+		# Mise à jour du prix de vente si fourni
+		sale_price = self.request.data.get('sale_price')
+		if sale_price and float(sale_price) > 0:
+			# Création d'un historique si le prix change
+			old_price = product.sale_price
+			new_price = float(sale_price)
+			if old_price != new_price:
+				SalePriceHistory.objects.create(
+					product=product,
+					old_price=old_price,
+					new_price=new_price,
+					user=self.request.user
+				)
+				product.sale_price = new_price
+		
+		# Forcer la date si fournie (format robuste)
+		raw_date = self.request.data.get('created_at')
+		if raw_date:
+			parsed_date = safe_parse_datetime(raw_date)
+			if parsed_date:
+				instance.created_at = parsed_date
+				instance.save(update_fields=['created_at'])
+
+		product.save(update_fields=['quantity', 'sale_price'])
 
 	@transaction.atomic()
 	def perform_update(self, serializer):
+		from api.shops.utils import safe_parse_datetime
 		instance = self.get_object()
 		
 		# Ajustement du stock au besoin
@@ -82,21 +114,20 @@ class SupplyViewSet(viewsets.ModelViewSet):
 			
 		serializer.save()
 
-		# Forcer la mise à jour de created_at si elle est dans la requête
+		# Date personnalisée
 		new_date_str = self.request.data.get('created_at')
 		if new_date_str:
-			instance.created_at = new_date_str
-			instance.save(update_fields=['created_at'])
-
+			parsed_date = safe_parse_datetime(new_date_str)
+			if parsed_date:
+				instance.created_at = parsed_date
+				instance.save(update_fields=['created_at'])
 
 	@transaction.atomic()
 	def perform_destroy(self, instance):
 		# On retire la quantité achetée du stock
 		product = instance.product
 		product.quantity -= instance.quantity
-		# On évite un stock négatif (optionnel, mais recommandé)
 		if product.quantity < 0:
 			product.quantity = 0
 		product.save(update_fields=['quantity'])
-		
-		instance.delete()
+		instance.delete()

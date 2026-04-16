@@ -106,7 +106,7 @@ class Product(models.Model):
     buy_price = models.FloatField(default=0)
 
     last_control_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
@@ -133,6 +133,7 @@ class Supply(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0)
     total_buy_price = models.FloatField(default=0)
+    sale_price = models.FloatField(default=0, help_text="A titre indicatif, le prix de vente unitaire défini lors de cet achat")
     
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -152,7 +153,7 @@ class Sales(models.Model):
     amount =  models.FloatField(default=0.0)
     buy_price = models.FloatField(default=0.0, help_text="Prix d'achat unitaire au moment de la vente pour le calcul du bénéfice")
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
