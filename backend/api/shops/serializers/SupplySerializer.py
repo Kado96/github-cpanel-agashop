@@ -1,73 +1,38 @@
 from .dependancies import *
 
-# defined locally to avoid circular imports
-class MinimalCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ["id", "name"]
-
-class MinimalSubCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SubCategory
-        fields = ["id", "name"]
-
 class ProductMinimalSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
-    category = serializers.SerializerMethodField()
-    sub_category = serializers.SerializerMethodField()
-    # Simulated product object for frontend compatibility (supply.product.product)
+    # Utilisation de ReadOnlyField avec source : plus performant et robuste
+    name = serializers.ReadOnlyField(source='product.name', default="Produit inconnu")
+    image_url = serializers.SerializerMethodField()
+    category_name = serializers.ReadOnlyField(source='product.sub_category.category.name', default=None)
+    sub_category_name = serializers.ReadOnlyField(source='product.sub_category.name', default=None)
+    
+    # Simulation de la structure imbriquée attendue par le frontend
     product = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ["id", "name", "image", "category", "sub_category", "product", "sale_price", "quantity"]
+        fields = ["id", "name", "image_url", "category_name", "sub_category_name", "product", "sale_price", "quantity"]
 
-    def get_name(self, obj):
-        return obj.product.name if (obj.product and hasattr(obj.product, 'name')) else "Produit inconnu"
-
-    def get_image(self, obj):
+    def get_image_url(self, obj):
         try:
-            # Sécurité maximale pour l'image
             if obj.product and obj.product.image:
                 return obj.product.image.url
-        except Exception:
-            # Si le fichier n'existe pas physiquement, on renvoie null au lieu de planter
-            pass
-        return None
-
-    def get_category(self, obj):
-        try:
-            if obj.product and obj.product.sub_category and obj.product.sub_category.category:
-                cat = obj.product.sub_category.category
-                return {"id": cat.id, "name": cat.name}
-        except:
-            pass
-        return None
-
-    def get_sub_category(self, obj):
-        try:
-            if obj.product and obj.product.sub_category:
-                sub = obj.product.sub_category
-                return {"id": sub.id, "name": sub.name}
         except:
             pass
         return None
 
     def get_product(self, obj):
-        if not obj.product:
-            return None
-        try:
-            return {
-                "id": obj.product.id,
-                "name": obj.product.name,
-                "sub_category": {
-                    "id": obj.product.sub_category.id if obj.product.sub_category else None,
-                    "name": obj.product.sub_category.name if obj.product.sub_category else None
-                }
+        # Pour supply.product.product.sub_category
+        if not obj.product: return None
+        return {
+            "id": obj.product.id,
+            "name": obj.product.name,
+            "sub_category": {
+                "id": obj.product.sub_category.id if obj.product.sub_category else None,
+                "name": obj.product.sub_category.name if obj.product.sub_category else None
             }
-        except:
-            return {"id": obj.product.id, "name": getattr(obj.product, 'name', 'Inconnu')}
+        }
 
 class SupplyCreateSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(required=False, allow_null=True)
