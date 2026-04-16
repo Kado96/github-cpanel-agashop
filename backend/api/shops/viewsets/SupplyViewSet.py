@@ -29,13 +29,7 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		return {'totals': agg['sum_pat'] or 0, 'totals_quantity': agg['sum_qty'] or 0}
 
 	def get_queryset(self):
-		return Supply.objects.all().select_related(
-			'product', 
-			'product__shop', 
-			'product__product__sub_category', 
-			'product__product__sub_category__category', 
-			'user'
-		).order_by('-created_at', '-id')
+		return Supply.objects.all().order_by('-created_at', '-id')
 
 	def list(self, request, *args, **kwargs):
 		# 1. Utilisation du queryset standard avec filtres
