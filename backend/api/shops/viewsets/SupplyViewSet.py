@@ -40,27 +40,29 @@ class SupplyViewSet(viewsets.ModelViewSet):
 	def list(self, request, *args, **kwargs):
 		try:
 			from api.shops.utils import parse_date_range
+			# On récupère les paramètres de manière plus flexible
 			shop_id = request.query_params.get('shop')
 			str_du = request.query_params.get('du') or request.query_params.get('created_at__gte')
 			str_au = request.query_params.get('au') or request.query_params.get('created_at__lte')
 			
-			combined_queryset = self.get_queryset()
+			# Queryset de base avec optimisations
+			queryset = self.get_queryset()
 			
-			# Application des filtres manuels
-			if shop_id:
-				combined_queryset = combined_queryset.filter(product__shop_id=shop_id)
+			# Filtrage par boutique (seulement si spécifié et valide)
+			if shop_id and str(shop_id).isdigit():
+				queryset = queryset.filter(product__shop_id=shop_id)
 			
-			start_dt, end_dt = parse_date_range(str_du, str_au)
-			if start_dt:
-				combined_queryset = combined_queryset.filter(created_at__gte=start_dt)
-			if end_dt:
-				combined_queryset = combined_queryset.filter(created_at__lte=end_dt)
+			# Filtrage par date (seulement si les deux sont fournis et valides)
+			if str_du and str_au:
+				start_dt, end_dt = parse_date_range(str_du, str_au)
+				if start_dt and end_dt:
+					queryset = queryset.filter(created_at__range=(start_dt, end_dt))
 
-			# Calcul des totaux sur le queryset filtré
-			tot = self._supply_totals(combined_queryset)
+			# Calcul des totaux sur le même queryset
+			tot = self._supply_totals(queryset)
 			
-			# Pagination
-			page = self.paginate_queryset(combined_queryset)
+			# Pagination standard Django Rest Framework
+			page = self.paginate_queryset(queryset)
 			if page is not None:
 				serializer = self.get_serializer(page, many=True)
 				response = self.get_paginated_response(serializer.data)
@@ -68,8 +70,8 @@ class SupplyViewSet(viewsets.ModelViewSet):
 				response.data['totals_quantity'] = tot['totals_quantity']
 				return response
 
-			# Cas non paginé
-			serializer = self.get_serializer(combined_queryset, many=True)
+			# Cas de repli : liste brute
+			serializer = self.get_serializer(queryset, many=True)
 			return Response({
 				'results': serializer.data,
 				'totals': tot['totals'],
