@@ -12,12 +12,31 @@ class MinimalSubCategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 class ProductMinimalSerializer(serializers.ModelSerializer):
-    # Traversal: Product model has a field 'product' pointing to BasicProduct
+    # Mapping explicite des champs du BasicProduct pour le frontend
+    name = serializers.ReadOnlyField(source='product.name')
+    image = serializers.ReadOnlyField(source='product.image')
     category = MinimalCategorySerializer(source='product.sub_category.category', read_only=True)
     sub_category = MinimalSubCategorySerializer(source='product.sub_category', read_only=True)
+    
+    # Pour la compatibilité avec getSubCategoryId dans le frontend
+    product = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
-        fields = ["id", "name", "category", "sub_category"]
+        fields = ["id", "name", "image", "category", "sub_category", "product", "sale_price", "quantity"]
+
+    def get_product(self, obj):
+        # Simule la structure s.product.product attendue par le frontend
+        if obj.product:
+            return {
+                "id": obj.product.id,
+                "name": obj.product.name,
+                "sub_category": {
+                    "id": obj.product.sub_category.id if obj.product.sub_category else None,
+                    "name": obj.product.sub_category.name if obj.product.sub_category else None
+                }
+            }
+        return None
 
 class SupplyCreateSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(required=False, allow_null=True)
