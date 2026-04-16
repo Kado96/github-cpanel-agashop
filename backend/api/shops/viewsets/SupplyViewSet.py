@@ -74,10 +74,16 @@ class SupplyViewSet(viewsets.ModelViewSet):
 				'totals_quantity': tot['totals_quantity']
 			})
 		except Exception as e:
+			import traceback
+			tb = traceback.format_exc()
 			print("--- CRITICAL ERROR IN SupplyViewSet.list ---")
-			traceback.print_exc()
+			print(tb)
 			return Response(
-				{"error": "Une erreur s'est produite lors de la récupération des achats.", "details": str(e)}, 
+				{
+					"error": "Une erreur s'est produite lors de la récupération des achats.", 
+					"details": str(e),
+					"traceback": tb
+				}, 
 				status=500
 			)
 
