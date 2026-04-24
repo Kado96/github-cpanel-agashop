@@ -17,7 +17,7 @@ Comme le déploiement automatique peut échouer, utilisez le **Terminal cPanel**
 
 1. **Entrer dans le répertoire du projet** :
    ```bash
-   cd /home/agashopb/github-cpanel-agashop
+   cd /home/agapb/github-cpanelsho-agashop
    ```
 
 2. **Récupérer le code depuis GitHub** :
