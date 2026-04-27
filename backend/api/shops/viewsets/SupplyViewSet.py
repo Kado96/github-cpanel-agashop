@@ -20,16 +20,18 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		return SupplySerializer
 
 	def _supply_totals(self, queryset):
-		"""Totaux sur achats affichés (quantity > 0, total_buy_price > 0)."""
-		displayed = queryset.filter(quantity__gt=0, total_buy_price__gt=0)
-		agg = displayed.aggregate(
+		"""Totaux sur achats réels (cohérent avec le filtrage du queryset)."""
+		agg = queryset.aggregate(
 			sum_pat=db_models.Sum('total_buy_price'),
 			sum_qty=db_models.Sum('quantity'),
 		)
 		return {'totals': agg['sum_pat'] or 0, 'totals_quantity': agg['sum_qty'] or 0}
 
 	def get_queryset(self):
-		return Supply.objects.all().order_by('-created_at', '-id')
+		# On ne renvoie que les achats qui ont une quantité OU un prix (exclut les scories)
+		return Supply.objects.filter(
+			db_models.Q(quantity__gt=0) | db_models.Q(total_buy_price__gt=0)
+		).order_by('-created_at', '-id')
 
 	def list(self, request, *args, **kwargs):
 		# 1. Utilisation du queryset standard avec filtres
