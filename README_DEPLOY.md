@@ -105,3 +105,11 @@ Dites-moi si vous avez pu générer le Token !
 
 
 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
+
+
+
+
+
+Essayez cette variante de la commande (plus robuste) 
+
+curl -u "kado96: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" -L -o /home/agashopb/api/api/shops/viewsets/SupplyViewSet.py https://raw.githubusercontent.com/Kado96/github-cpanel-agashop/main/backend/api/shops/viewsets/SupplyViewSet.py

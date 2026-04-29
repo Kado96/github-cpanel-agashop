@@ -121,9 +121,7 @@
             <ion-text>P.A.T : {{ money(supply?.total_buy_price ?? 0) }} BIF</ion-text>
             <br />
             <ion-text>
-              P.V.U : 
-              <span v-if="Number(supply?.sale_price) > 0">{{ money(supply.sale_price) }} BIF</span>
-              <span v-else class="missing-price">. . . .</span>
+              P.V.U : {{ money(Number(supply?.sale_price) || Number(supply?.product?.sale_price) || 0) }} BIF
             </ion-text>
             <br />
             <ion-text color="primary">Date : {{ formatDateTime(supply?.created_at) }}</ion-text>

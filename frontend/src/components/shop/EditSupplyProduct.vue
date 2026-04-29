@@ -350,10 +350,12 @@ export default {
     async performSave() {
       if (!this.validateInputs()) return;
       this.loading = true;
-      const quantity = Math.round(Number(this.product.quantity));
-      const total_buy_price = parseFloat(this.product.total_buy_price);
-      const salePrice = this.effectiveSalePrice;
-      const buyPrice = quantity > 0 ? total_buy_price / quantity : 0;
+      
+      // Sécurisation des données pour éviter d'envoyer NaN (cause fréquente d'erreur 400)
+      const quantity = Math.round(Number(this.product.quantity)) || 0;
+      const total_buy_price = parseFloat(this.product.total_buy_price) || 0;
+      const salePrice = Number(this.product.sale_price) || 0;
+      
       try {
         const res = await suppliesService.updateSupply(this.supplyId, { 
           quantity, 

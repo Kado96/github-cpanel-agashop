@@ -79,14 +79,18 @@ class SupplySerializer(serializers.ModelSerializer):
             }
 
 class SupplyCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer pour la création et la mise à jour des approvisionnements.
+    Supporte les mises à jour partielles (PATCH) sans exiger le produit ou l'utilisateur.
+    """
     created_at = serializers.DateTimeField(required=False, allow_null=True)
-    class Meta:
-        model = Supply
-        fields = ["id", "user", "product", "quantity", "total_buy_price", "sale_price", "created_at"]
 
-# 4. Pour la création (plus léger)
-class SupplyCreateSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(required=False, allow_null=True)
     class Meta:
         model = Supply
-        fields = ["id", "user", "product", "quantity", "total_buy_price", "sale_price", "created_at"]
+        fields = ["user", "product", "quantity", "total_buy_price", "sale_price", "created_at"]
+        extra_kwargs = {
+            'product': {'required': False},
+            'user': {'required': False, 'allow_null': True},
+            'quantity': {'required': False},
+            'total_buy_price': {'required': False},
+        }
