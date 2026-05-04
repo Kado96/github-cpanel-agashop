@@ -313,7 +313,7 @@ export default {
             }
             const q = Number(this.product.quantity);
             const t = Number(this.product.total_buy_price);
-            if (isNaN(q) || q < 0) {
+            if (isNaN(q) || q <= 0) {
                 this.errors.quantity.empty = true;
                 return false;
             }

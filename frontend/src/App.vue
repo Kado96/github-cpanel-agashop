@@ -8,6 +8,7 @@
 <script >
 import { IonApp, IonRouterOutlet, useIonRouter, useBackButton } from '@ionic/vue';
 import { App } from '@capacitor/app';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { shopsService } from '@/services/api';
 import { toastController } from '@ionic/vue';
 import ContextualHelpBot from '@/components/common/ContextualHelpBot.vue';
@@ -48,6 +49,8 @@ export default{
   },
   mounted(){
     console.log("app")
+    // Hide splash screen explicitly after Vue app is ready
+    SplashScreen.hide().catch(console.error);
     var otp_user = JSON.parse(localStorage.getItem('otp_user'));
     if(otp_user) {
       this.$store.state.otp_user = otp_user;

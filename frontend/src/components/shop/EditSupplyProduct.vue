@@ -333,10 +333,10 @@ export default {
       }
       const q = Number(this.product.quantity);
       const t = Number(this.product.total_buy_price);
-      if (isNaN(q) || q < 0) {
-        this.errors.quantity.empty = true;
-        return false;
-      }
+            if (isNaN(q) || q <= 0) {
+                this.errors.quantity.empty = true;
+                return false;
+            }
       if (isNaN(t) || t < 0) {
         this.errors.total_buy_price.empty = true;
         return false;
@@ -356,6 +356,8 @@ export default {
       const total_buy_price = parseFloat(this.product.total_buy_price) || 0;
       const salePrice = Number(this.product.sale_price) || 0;
       
+      const buyPrice = quantity > 0 ? total_buy_price / quantity : 0;
+
       try {
         const res = await suppliesService.updateSupply(this.supplyId, { 
           quantity, 

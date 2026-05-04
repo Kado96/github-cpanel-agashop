@@ -74,3 +74,12 @@ Une fois la synchronisation terminée, il faut ouvrir le projet dans Android Stu
    # Ou avec le nouvel outil Capacitor Assets :
    npx @capacitor/assets generate --android
    ```
+Supprimer manuellement le dossier de compilation corrompu. Va dans le répertoire suivant : E:\AgaShop\github-cpanel-agashop\frontend\android\app\ Et supprime complètement le dossier nommé build.
+
+(Alternative en ligne de commande depuis le dossier frontend) :
+
+powershell
+cd android
+.\gradlew clean
+cd ..
+npx cap open android

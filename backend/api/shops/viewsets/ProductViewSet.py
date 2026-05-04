@@ -369,7 +369,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 		product.quantity += quantity
 		
 		# Mise à jour du prix d'achat
-		product.buy_price = round(total_buy_price/quantity)
+		if quantity > 0:
+			product.buy_price = round(total_buy_price/quantity)
 		
 		# Mise à jour du prix de vente si fourni (nouveau besoin utilisateur)
 		sale_price = request.data.get('sale_price')
