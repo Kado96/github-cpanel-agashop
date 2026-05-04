@@ -167,16 +167,20 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 	@transaction.atomic()
 	def create(self, request):
-		# Si le produit est déjà dans la boutique (même shop, product, sale_price), retourner 200 avec l'existant pour éviter 400
+		# Si le produit est déjà dans la boutique (même shop + product), retourner l'existant pour éviter les doublons
 		try:
 			shop_id = request.data.get("shop")
 			product_id = request.data.get("product")
-			sale_price = float(request.data.get("sale_price", 0))
 			if shop_id is not None and product_id is not None:
 				existing = Product.objects.filter(
-					shop_id=shop_id, product_id=product_id, sale_price=sale_price
+					shop_id=shop_id, product_id=product_id
 				).select_related("shop", "product").first()
 				if existing:
+					# Mettre à jour le sale_price si un nouveau est fourni
+					new_sale_price = request.data.get("sale_price")
+					if new_sale_price is not None and float(new_sale_price) > 0 and float(new_sale_price) != existing.sale_price:
+						existing.sale_price = float(new_sale_price)
+						existing.save(update_fields=["sale_price", "updated_at"])
 					return Response(
 						ProductSerializer(existing).data,
 						status=status.HTTP_200_OK

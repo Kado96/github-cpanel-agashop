@@ -113,7 +113,7 @@ class Product(models.Model):
         return f"{self.product}"
 
     class Meta:
-        unique_together = "shop","product","sale_price"
+        unique_together = "shop","product"
         ordering = ['-created_at']
 
 class SalePriceHistory(models.Model):
