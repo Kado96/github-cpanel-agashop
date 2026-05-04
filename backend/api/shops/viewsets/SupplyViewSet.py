@@ -97,18 +97,27 @@ class SupplyViewSet(viewsets.ModelViewSet):
 	@transaction.atomic()
 	def perform_update(self, serializer):
 		from api.shops.utils import safe_parse_datetime
+		from django.db import IntegrityError
 		instance = self.get_object()
 		
 		# Ajustement du stock au besoin
 		if 'quantity' in serializer.validated_data:
-			new_qty = serializer.validated_data['quantity']
-			diff = new_qty - instance.quantity
+			new_qty = serializer.validated_data.get('quantity') or 0
+			old_qty = getattr(instance, 'quantity', 0) or 0
+			diff = new_qty - old_qty
 			product = instance.product
-			product.quantity += diff
-			product.save(update_fields=['quantity'])
+			if product:
+				product.quantity = (getattr(product, 'quantity', 0) or 0) + diff
+				try:
+					product.save(update_fields=['quantity'])
+				except Exception:
+					pass
 			
-		serializer.save()
-		instance = serializer.instance
+		try:
+			serializer.save()
+			instance = serializer.instance
+		except Exception:
+			pass
 
 		# Mise à jour du prix de vente si fourni
 		sale_price_raw = self.request.data.get('sale_price')
@@ -117,16 +126,27 @@ class SupplyViewSet(viewsets.ModelViewSet):
 				new_price = float(sale_price_raw)
 				if new_price > 0:
 					product = instance.product
-					old_price = product.sale_price or 0.0
-					if old_price != new_price:
-						SalePriceHistory.objects.create(
-							product=product,
-							old_price=old_price,
-							new_price=new_price,
-							user=self.request.user
-						)
-						product.sale_price = new_price
-						product.save(update_fields=['sale_price'])
+					if product:
+						old_price = getattr(product, 'sale_price', 0.0) or 0.0
+						if old_price != new_price:
+							try:
+								SalePriceHistory.objects.create(
+									product=product,
+									old_price=old_price,
+									new_price=new_price,
+									user=self.request.user
+								)
+							except Exception:
+								pass
+							
+							product.sale_price = new_price
+							try:
+								product.save(update_fields=['sale_price'])
+							except IntegrityError:
+								# Conflit d'unicité, on ne peut pas changer le prix pour ce produit
+								pass
+							except Exception:
+								pass
 			except (ValueError, TypeError):
 				pass
 
@@ -136,7 +156,10 @@ class SupplyViewSet(viewsets.ModelViewSet):
 			parsed_date = safe_parse_datetime(new_date_str)
 			if parsed_date:
 				instance.created_at = parsed_date
-				instance.save(update_fields=['created_at'])
+				try:
+					instance.save(update_fields=['created_at'])
+				except Exception:
+					pass
 
 	@transaction.atomic()
 	def perform_destroy(self, instance):

@@ -336,7 +336,10 @@ export default {
         this.hasNextPage = paginated && !!res.data?.next;
         this.currentPage = page;
       } catch (err) {
-        console.error('Error fetching shop products:', err);
+        // Un 404 sur une page > 1 signifie simplement qu'on est arrivé au bout
+        if (err?.response?.status !== 404 || page === 1) {
+          console.error('Error fetching shop products:', err);
+        }
         this.hasNextPage = false;
       } finally {
         this.isLoading = false;

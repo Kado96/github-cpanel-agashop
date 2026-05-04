@@ -275,6 +275,7 @@ class History(models.Model):
 
     unity_price = models.IntegerField(null=True)
     total_price = models.IntegerField(null=True)
+    sale_price = models.FloatField(default=0.0, null=True, blank=True)
 
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

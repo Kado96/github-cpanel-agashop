@@ -438,8 +438,11 @@ export default {
             })
             .catch((err) => {
               this.loading = false;
+              // Un 404 sur une page > 1 signifie simplement qu'on est arrivé au bout
+              if (err?.response?.status !== 404 || pageNumber === 1) {
+                this.errorOrRefresh(err, () => this.fetchSupplies(pageNumber));
+              }
               this.hasNextPage = false;
-              this.errorOrRefresh(err, () => this.fetchSupplies(page));
             });
         },
         async loadMoreSupplies(ev) {
