@@ -458,13 +458,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 	def changeSalePrice(self, request, pk):
 		print(request.data)
 		product = self.get_object()
-		new_price = request.data['new_price']
-		new_buy_price = request.data['new_buy_price']
+		try:
+			new_price = float(request.data.get('new_price', product.sale_price))
+			new_buy_price = float(request.data.get('new_buy_price', product.buy_price))
+		except (ValueError, TypeError):
+			return Response({"error": "Prix invalide"}, status=status.HTTP_400_BAD_REQUEST)
+
 		if(new_price!=product.sale_price):
 			SalePriceHistory.objects.create(
 				user=request.user,
 				product=product,
-				old_price=product.sale_price,
+				old_price=product.sale_price or 0.0,
 				new_price=new_price,
 			)
 			product.sale_price=new_price
