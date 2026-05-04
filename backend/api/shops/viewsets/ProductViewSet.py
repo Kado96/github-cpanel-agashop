@@ -399,7 +399,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 		sub_cat = product.product.sub_category if product.product else None
 		category_name = sub_cat.category.name if sub_cat and sub_cat.category else None
 		sub_category_name = sub_cat.name if sub_cat else None
-		unity = round(total_buy_price / quantity)
+		unity = round(total_buy_price / quantity) if quantity > 0 else 0
 		total_int = int(round(total_buy_price))
 
 		History.objects.create(
