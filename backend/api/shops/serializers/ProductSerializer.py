@@ -8,17 +8,34 @@ class SubCategoryWithCategorySerializer(serializers.ModelSerializer):
 		model = SubCategory
 		fields = ("id", "name", "category", "category_name")
 
+class ProductMediaSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = ProductMedia
+		fields = "__all__"
+
 class BasicProductSerializer(serializers.ModelSerializer):
 	sub_category = SubCategoryWithCategorySerializer(read_only=True)
+	media_details = ProductMediaSerializer(source='media', read_only=True)
+	image_url = serializers.SerializerMethodField()
+
 	class Meta:
 		model = BasicProduct
 		fields = "__all__"
 		
 	def get_image_url(self, obj):
 		request = self.context.get('request')
-		if obj.image:
-			return request.build_absolute_uri(obj.image.url) if request else obj.image.url
-		return None
+		# Priorité au nouveau système de média
+		if obj.media and obj.media.file:
+			url = obj.media.file.url
+		# Fallback sur l'ancien champ image
+		elif obj.image:
+			url = obj.image.url
+		else:
+			return None
+			
+		if request:
+			return request.build_absolute_uri(url)
+		return url
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):

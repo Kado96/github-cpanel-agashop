@@ -15,6 +15,7 @@ router.register("categories", CategoryViewSet, basename="categories")
 router.register("sub-categories", SubCategoryViewSet, basename="sub-categories")
 router.register("history", HistoryViewSet, basename="history")
 router.register("expenses", ExpenseViewSet, basename="expenses")
+router.register("media", MediaViewSet, basename="media")
 
 urlpatterns = [
     path('', include(router.urls)),

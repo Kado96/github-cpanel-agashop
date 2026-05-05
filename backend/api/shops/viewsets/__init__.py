@@ -7,3 +7,4 @@ from .SalesViewSet import SalesViewSet
 from .SupplyViewSet import SupplyViewSet
 from .HistoryViewSet import HistoryViewSet
 from .ExpenseViewSet import ExpenseViewSet
+from .MediaViewSet import MediaViewSet

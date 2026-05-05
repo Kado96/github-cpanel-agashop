@@ -39,15 +39,22 @@
                   />
 
                   <div class="image-row">
-                    <ion-button class="upload-btn" @click="$refs.fileInput.click()" fill="solid" color="primary">
-                      <ion-icon slot="start" :icon="imageOutline"></ion-icon>
-                      {{ (imagePreview || (product && product.image)) ? 'Changer la photo' : 'Ajouter une photo' }}
-                    </ion-button>
+                    <div class="upload-buttons">
+                      <ion-button class="upload-btn" @click="$refs.fileInput.click()" fill="solid" color="primary">
+                        <ion-icon slot="start" :icon="imageOutline"></ion-icon>
+                        {{ (imagePreview || (product && product.image) || selectedMediaUrl) ? 'Changer' : 'Téléverser' }}
+                      </ion-button>
+                      
+                      <ion-button class="library-btn" @click="openMediaLibrary" fill="outline" color="secondary">
+                        <ion-icon slot="start" :icon="imagesOutline"></ion-icon>
+                        Bibliothèque
+                      </ion-button>
+                    </div>
 
-                    <div class="thumb" @click="$refs.fileInput.click()">
+                    <div class="thumb" @click="selectedMediaUrl ? openMediaLibrary() : $refs.fileInput.click()">
                       <img
-                        v-if="imagePreview || (product && product.image)"
-                        :src="imagePreview || product.image"
+                        v-if="imagePreview || selectedMediaUrl || (product && product.image)"
+                        :src="imagePreview || selectedMediaUrl || product.image"
                         alt="Aperçu"
                       />
                       <div v-else class="thumb-placeholder">
@@ -201,11 +208,13 @@ import {
 import {
   close,
   imageOutline,
+  imagesOutline,
   arrowBackOutline,
   documentTextOutline
 } from 'ionicons/icons';
 
 import { basicProductsService, categoriesService, subCategoriesService } from '../../services/api';
+import MediaLibrary from '../common/MediaLibrary.vue';
 
 /**
  * Composant BasicProductForm
@@ -245,6 +254,7 @@ export default {
     return {
       close,
       imageOutline,
+      imagesOutline,
       arrowBackOutline,
       documentTextOutline,
       loading: false,
@@ -256,9 +266,11 @@ export default {
         categoryId: null,
         subCategoryId: null,
         name: '',
-        image: null
+        image: null,
+        media: null
       },
       imagePreview: null,
+      selectedMediaUrl: null,
       imageFile: null,
       errors: {
         categoryId: false,
@@ -298,6 +310,11 @@ export default {
       }
       if (catId) {
         this.formData.categoryId = Number(catId);
+      }
+
+      if (this.product.media) {
+        this.formData.media = this.product.media;
+        this.selectedMediaUrl = this.product.image_url; // image_url returns media file url if present
       }
     }
   },
@@ -499,12 +516,33 @@ export default {
       const file = event.target.files[0];
       if (file) {
         this.imageFile = file;
+        this.formData.media = null;
+        this.selectedMediaUrl = null;
         const reader = new FileReader();
         reader.onload = (e) => {
           this.imagePreview = e.target.result;
         };
         reader.readAsDataURL(file);
       }
+    },
+    async openMediaLibrary() {
+      this.blurActiveElement();
+      const modal = await modalController.create({
+        component: MediaLibrary,
+        cssClass: 'media-library-modal'
+      });
+      
+      modal.onDidDismiss().then((result) => {
+        if (result.role === 'confirm' && result.data) {
+          const selected = result.data;
+          this.formData.media = selected.id;
+          this.selectedMediaUrl = selected.file;
+          this.imageFile = null;
+          this.imagePreview = null;
+        }
+      });
+      
+      return modal.present();
     },
     initErrors() {
       this.errors.categoryId = false;
@@ -552,9 +590,13 @@ export default {
           payload.append('sub_category', this.formData.subCategoryId);
         } else {
           payload = {
-            name: this.formData.name
+            name: this.formData.name,
+            sub_category: this.formData.subCategoryId
           };
-          payload.sub_category = this.formData.subCategoryId;
+          
+          if (this.formData.media) {
+            payload.media = this.formData.media;
+          }
         }
 
         if (this.mode === 'create') {
@@ -820,21 +862,27 @@ ion-header {
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-}
 
-.image-row {
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
-  flex-direction: column;
-}
+  .image-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
 
-.upload-btn {
-  width: 100%;
-  height: 44px;
-  --border-radius: 10px;
-  text-transform: none;
-  font-weight: 700;
+    .upload-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .upload-btn, .library-btn {
+      --border-radius: 12px;
+      margin: 0;
+      height: 48px;
+      font-weight: 600;
+    }
+  }
 }
 
 .thumb {

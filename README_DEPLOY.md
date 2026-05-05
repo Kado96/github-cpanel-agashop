@@ -116,3 +116,27 @@ curl -u "kado96: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" -L -o /home/agashopb/a
 
 
 ~/full_update.sh
+
+
+
+cd /home/agashopb/api
+source /home/agashopb/virtualenv/api/3.11/bin/activate
+python manage.py shell -c "
+from api.shops.models import Product
+from django.db.models import Count
+
+# Trouver les doublons (même shop + même product)
+dupes = Product.objects.values('shop_id', 'product_id').annotate(cnt=Count('id')).filter(cnt__gt=1)
+print(f'Doublons trouvés: {len(dupes)}')
+
+for d in dupes:
+    products = Product.objects.filter(shop_id=d['shop_id'], product_id=d['product_id']).order_by('-quantity')
+    keeper = products.first()  # On garde celui qui a le plus de stock
+    for p in products[1:]:
+        keeper.quantity += p.quantity  # On fusionne le stock
+        print(f'Fusion: {p.name} (stock:{p.quantity}) -> {keeper.name} (stock:{keeper.quantity})')
+        p.delete()
+    keeper.save()
+
+print('Nettoyage terminé !')
+"

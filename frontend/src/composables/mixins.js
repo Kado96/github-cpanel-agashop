@@ -379,7 +379,19 @@ export default {
     productImage(item) {
       if (!item) return '/placeholder.png';
       
-      // Extraction robuste de l'image brute
+      // 1. Priorité absolue au champ image_url généré par le backend (plus fiable)
+      const imageUrl = item.image_url || 
+                       item.product?.image_url || 
+                       item.product?.product?.image_url;
+      
+      if (imageUrl) {
+        if (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) return imageUrl;
+        const base = this.getMediaBaseUrl();
+        const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+        return `${base}${path}`;
+      }
+
+      // 2. Extraction robuste de l'image brute (fallback legacy)
       let raw = null;
       if (typeof item === 'string') {
         raw = item;

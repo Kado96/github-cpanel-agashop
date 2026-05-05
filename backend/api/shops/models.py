@@ -81,11 +81,26 @@ class SubCategory(models.Model):
     def __str__(self) -> str:
         return f"{self.category.name}  : {self.name}"
 
+class ProductMedia(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    file = models.FileField(upload_to="products/media/", help_text="Le fichier image physique")
+    name = models.CharField(max_length=100, blank=True, help_text="Nom descriptif de l'image")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Média de produit"
+        verbose_name_plural = "Bibliothèque de médias"
+        ordering = ['-created_at']
+
+    def __str__(self) -> str:
+        return self.name if self.name else f"Image {self.id}"
+
 class BasicProduct(models.Model):
     id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=50)
     sub_category = models.ForeignKey(SubCategory, null=True, blank=True, on_delete=models.CASCADE)
-    image = models.FileField(upload_to="images/", null=True, blank=True)
+    media = models.ForeignKey(ProductMedia, null=True, blank=True, on_delete=models.SET_NULL, related_name='products')
+    image = models.FileField(upload_to="images/", null=True, blank=True, help_text="Ancien champ (Déprécié)")
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
