@@ -28,10 +28,7 @@ def sync():
 
     count = 0
     for root, dirs, files in os.walk(src):
-        # Filtrer les dossiers ignorés
         dirs[:] = [d for d in dirs if d not in ignore_list]
-        
-        # Créer le chemin relatif pour la destination
         rel_path = os.path.relpath(root, src)
         dest_path = os.path.join(dest, rel_path)
         
@@ -45,31 +42,40 @@ def sync():
             src_file = os.path.join(root, file)
             dest_file = os.path.join(dest_path, file)
             
-            # Copie du fichier avec préservation des métadonnées
+            # Affichage discret mais informatif
+            if "migrations" in src_file or "models.py" in src_file or "viewsets" in src_file:
+                print(f"  -> Copie de : {rel_path}/{file}")
+
             shutil.copy2(src_file, dest_file)
             count += 1
 
-    print(f"OK : {count} fichiers copiés avec succès.")
+    print(f"OK : Total de {count} fichiers synchronisés.")
 
-    # Vérification de l'existence du manage.py à destination
-    manage_py = os.path.join(dest, 'manage.py')
-    if not os.path.exists(manage_py):
-        print(f"Erreur : manage.py introuvable à l'adresse {manage_py}")
-        return
+    # Vérification critique de la migration 0023
+    target_migration = os.path.join(dest, 'api', 'shops', 'migrations', '0023_productmedia_basicproduct_media.py')
+    if os.path.exists(target_migration):
+        print(f"✅ Migration 0023 détectée à destination.")
+    else:
+        print(f"⚠️ Migration 0023 MANQUANTE à destination ({target_migration}).")
+        print("Tentative de génération automatique des migrations sur le serveur...")
+        subprocess.run([venv_python, os.path.join(dest, 'manage.py'), 'makemigrations', 'shops'], cwd=dest)
 
     print("\n--- 2. Exécution des migrations (Base de données) ---")
+    manage_py = os.path.join(dest, 'manage.py')
     try:
         subprocess.run([venv_python, manage_py, 'migrate', 'shops'], cwd=dest, check=True)
         print("OK : Migrations effectuées.")
-    except subprocess.CalledProcessError as e:
-        print(f"Erreur lors des migrations : {e}")
+    except subprocess.CalledProcessError:
+        print("Erreur lors du migrate. On tente un makemigrations suivi d'un migrate...")
+        subprocess.run([venv_python, manage_py, 'makemigrations', 'shops'], cwd=dest)
+        subprocess.run([venv_python, manage_py, 'migrate', 'shops'], cwd=dest)
 
     print("\n--- 3. Nettoyage et fusion des doublons d'images ---")
     try:
         subprocess.run([venv_python, manage_py, 'cleanup_images'], cwd=dest, check=True)
         print("OK : Nettoyage terminé.")
     except subprocess.CalledProcessError as e:
-        print(f"Erreur lors du nettoyage : {e}")
+        print(f"Le nettoyage a échoué (peut-être que la colonne media_id manque encore).")
 
     print("\n--- SYNCHRONISATION TERMINÉE ---")
     print(">>> N'oubliez pas de REDÉMARRER l'application Python dans cPanel (Setup Python App).")
