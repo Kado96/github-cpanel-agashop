@@ -30,11 +30,19 @@
      </ion-toolbar>
    </ion-header>
  
- <ion-content>  
-   <ion-list-header v-if="controlledProducts.length>0"> Déjà controlés </ion-list-header>
+ <ion-content>
+    <ion-searchbar 
+      v-model="searchTerm" 
+      placeholder="Rechercher un produit..." 
+      animated="true"
+      class="ion-padding-horizontal"
+      style="--background: #f1f5f9; --border-radius: 12px; margin-top: 10px;"
+    ></ion-searchbar>
+
+   <ion-list-header v-if="filteredControlledProducts.length>0"> Déjà controlés </ion-list-header>
  
-     <div class="scroll-container ion-margin" v-if="controlledProducts.length>0" >
-       <ion-card color="light" v-for="product in controlledProducts" >
+     <div class="scroll-container ion-margin" v-if="filteredControlledProducts.length>0" >
+       <ion-card color="light" v-for="product in filteredControlledProducts" :key="product.id">
          <ion-badge
            color="light"
            style="position: absolute;top: 0;right: 0;"
@@ -56,11 +64,12 @@
        </ion-card>
      </div>
 
-    <ion-list-header> Non controlés </ion-list-header>
+    <ion-list-header> Non controlés ({{ filteredUnControlledProducts.length }}) </ion-list-header>
 
-    <div class="ion-margin" v-if="unControlledProducts.length>0">
+    <div class="ion-margin" v-if="filteredUnControlledProducts.length>0">
       <ion-item
-        v-for="product in unControlledProducts"
+        v-for="product in filteredUnControlledProducts"
+        :key="product.id"
         @click="performControlProduct(product)"
         >
         <ion-thumbnail slot="start">
@@ -85,6 +94,9 @@
         </ion-label>
         <ion-icon size="large" color="danger" :icon="close" slot="end"></ion-icon>
       </ion-item>
+    </div>
+    <div v-else class="ion-padding ion-text-center">
+       <ion-text color="medium">Aucun produit trouvé</ion-text>
     </div>
 
  </ion-content>
@@ -116,6 +128,7 @@
    IonFabButton,
    IonList,
    IonPopover,
+   IonSearchbar
    
  } from '@ionic/vue';
  
@@ -168,8 +181,8 @@ export default {
      IonFabButton,
      IonList,
      IonPopover,
+     IonSearchbar
    },
-   mixins: [globalMixins],
    data(){
      return{
        cartOutline,
@@ -190,12 +203,29 @@ export default {
        closeCircle,
        timer,
        categories: [],
+       searchTerm: "",
      }
    },
    computed:{
         shopId(){
             return this.shop ? this.shop.id : null
         },
+        filteredControlledProducts() {
+            if (!this.searchTerm) return this.controlledProducts;
+            const search = this.searchTerm.toLowerCase();
+            return this.controlledProducts.filter(p => 
+                p.name.toLowerCase().includes(search) || 
+                (p.product && p.product.name.toLowerCase().includes(search))
+            );
+        },
+        filteredUnControlledProducts() {
+            if (!this.searchTerm) return this.unControlledProducts;
+            const search = this.searchTerm.toLowerCase();
+            return this.unControlledProducts.filter(p => 
+                p.name.toLowerCase().includes(search) || 
+                (p.product && p.product.name.toLowerCase().includes(search))
+            );
+        }
     },
     beforeMount(){
         this.$store.state.shop = this.getShopFromLocalStorage()
@@ -291,126 +321,126 @@ export default {
                });
        },
    }
- }
- </script>
- 
- <style lang="scss" scoped>
- ion-header {
-   ion-toolbar {
-     --background: white;
-     ion-badge {
-       position: absolute;
-       top: 0;
-       right: 0;
-       border-radius: 50%;
-       margin: 0 -0.3rem 0 0;
-       display: flex;
-       align-items: center;
-       justify-content: center;
-       ion-text {
-         font-size: 0.6rem;
-         font-weight: bold;
-       }
-       ion-icon{
-        font-size:44px;
-       }
-     }
-   }
- }
- 
- ion-item {
-   ion-label {
-     font-size: 1.4rem;
-     font-weight: bold;
+}
+</script>
 
-     .art-cat {
-       font-size: 0.8rem;
-       color: #64748b;
-       font-weight: 600;
-       margin-top: 2px;
-       display: block;
-     }
+<style lang="scss" scoped>
+ion-header {
+  ion-toolbar {
+    --background: white;
+    ion-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border-radius: 50%;
+      margin: 0 -0.3rem 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      ion-text {
+        font-size: 0.6rem;
+        font-weight: bold;
+      }
+      ion-icon{
+       font-size:44px;
+      }
+    }
+  }
+}
 
-     p {
-       margin-top: 5px;
-       font-size: 0.9rem;
-       font-weight: normal;
-     }
-   }
- }
+ion-item {
+  ion-label {
+    font-size: 1.4rem;
+    font-weight: bold;
 
- img {
-   margin-bottom: 0px;
-   border-radius: 10px;
-    width: 100%;
- }
- 
- ion-list-header {
-   font-size: 1.1rem;
-   font-weight: normal;
- }
- 
- ion-card {
-   box-shadow: none;
-   margin: 10px 5px;
-   height: 15vh;
-   flex-direction: column;
-   ion-thumbnail {
-     border-radius: 10px;
-     width: 3rem;
-     height: 3rem;
-     margin-bottom: 1.3vh;
-     ion-icon {
-       font-size: 2rem;
-     }
-   }
-   ion-label {
-     font-size: 1rem;
-     font-weight: 500;
-   }
- }
- 
- ion-card, ion-thumbnail {
-   display: flex;
-   align-items: center;
-   justify-content: center;
- }
+    .art-cat {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 2px;
+      display: block;
+    }
 
- ion-fab{
-     position:absolute;
-     bottom:72px !important;
-     right: 1em !important; z-index: 10001 !important;
-     ion-fab-button{
-       ion-icon{
-         color:white
-       }
-       
-     }
- }
+    p {
+      margin-top: 5px;
+      font-size: 0.9rem;
+      font-weight: normal;
+    }
+  }
+}
 
- ion-buttons {
-     ion-icon{
-     font-size:24px;
-     color: white;
-     }
- }
+img {
+  margin-bottom: 0px;
+  border-radius: 10px;
+   width: 100%;
+}
 
- .scroll-container {
+ion-list-header {
+  font-size: 1.1rem;
+  font-weight: normal;
+}
+
+ion-card {
+  box-shadow: none;
+  margin: 10px 5px;
+  height: 15vh;
+  flex-direction: column;
+  ion-thumbnail {
+    border-radius: 10px;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1.3vh;
+    ion-icon {
+      font-size: 2rem;
+    }
+  }
+  ion-label {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+ion-card, ion-thumbnail {
   display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory; /* Ensures smooth scrolling */
-  gap: 10px; /* Adds space between images */
-  padding: 10px;
-  height:300px;
-  white-space: nowrap;
+  align-items: center;
+  justify-content: center;
+}
+
+ion-fab{
+    position:absolute;
+    bottom:72px !important;
+    right: 1em !important; z-index: 10001 !important;
+    ion-fab-button{
+      ion-icon{
+        color:white
+      }
+      
+    }
+}
+
+ion-buttons {
+    ion-icon{
+    font-size:24px;
+    color: white;
+    }
+}
+
+.scroll-container {
+ display: flex;
+ overflow-x: auto;
+ scroll-snap-type: x mandatory; /* Ensures smooth scrolling */
+ gap: 10px; /* Adds space between images */
+ padding: 10px;
+ height:300px;
+ white-space: nowrap;
 }
 
 .scroll-container ion-card {
-  flex: 0 0 auto; /* Prevents shrinking */
-  width: 250px; /* Adjust width as needed */
-  scroll-snap-align: start; /* Snaps cards into place */
-  height:300px;
-  width:150px;
+ flex: 0 0 auto; /* Prevents shrinking */
+ width: 250px; /* Adjust width as needed */
+ scroll-snap-align: start; /* Snaps cards into place */
+ height:300px;
+ width:150px;
 }
 
- </style>
+</style>
