@@ -270,7 +270,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 		serializer.is_valid(raise_exception=True)
 		product = self.get_object()
 
-		quantity = int(serializer.validated_data["quantity"])
+		quantity = float(serializer.validated_data["quantity"])
 
 		control_frequency = ControlFrequency.objects.filter(shop=product.shop)
 		if not control_frequency.exists():
@@ -319,8 +319,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 				product_name=product_to_update.name,
 				product_id=product_to_update.id,
 				quantity=qt_vendu,
-				unity_price=int(current_sale_price),
-				total_price=int(amount),
+				unity_price=current_sale_price,
+				total_price=amount,
 				sale_price=current_sale_price
 			)
 
@@ -345,8 +345,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 				product_name=product_to_update.name,
 				product_id=product_to_update.id,
 				quantity=qt_ajout,
-				unity_price=int(buy_price),
-				total_price=int(total_buy_price),
+				unity_price=buy_price,
+				total_price=total_buy_price,
 				sale_price=current_sale_price
 			)
 		
@@ -379,7 +379,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 		try:
 			product.quantity = (getattr(product, 'quantity', 0) or 0) + quantity
 			if quantity > 0:
-				product.buy_price = round(total_buy_price/quantity)
+				product.buy_price = total_buy_price / quantity
 			
 			sale_price = request.data.get('sale_price')
 			if sale_price and float(sale_price) > 0:
@@ -420,8 +420,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 			sub_cat = product.product.sub_category if (product and product.product) else None
 			category_name = sub_cat.category.name if sub_cat and sub_cat.category else None
 			sub_category_name = sub_cat.name if sub_cat else None
-			unity = round(total_buy_price / quantity) if quantity > 0 else 0
-			total_int = int(round(total_buy_price))
+			unity = total_buy_price / quantity if quantity > 0 else 0
+			total_float = total_buy_price
 			# Utilisation du nouveau prix de vente ou du prix actuel du produit
 			final_sale_price = float(sale_price) if (sale_price and float(sale_price) > 0) else (getattr(product, 'sale_price', 0) or 0.0)
 
@@ -445,7 +445,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 				quantity=quantity,
 
 				unity_price=unity,
-				total_price=total_int,
+				total_price=total_float,
 				sale_price=final_sale_price,
 				created_at=created_at
 			)

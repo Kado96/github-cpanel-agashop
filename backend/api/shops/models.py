@@ -116,7 +116,7 @@ class Product(models.Model):
     in_unity = models.CharField(max_length=50, null=True, blank=True)
     out_unity = models.CharField(max_length=50, null=True, blank=True)
     rapport = models.IntegerField(default=1, null=True, blank=True)
-    quantity = models.IntegerField(default=0)
+    quantity = models.FloatField(default=0)
     sale_price = models.FloatField(default=0)
     buy_price = models.FloatField(default=0)
 
@@ -146,7 +146,7 @@ class Supply(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=0)
+    quantity = models.FloatField(default=0)
     total_buy_price = models.FloatField(default=0)
     sale_price = models.FloatField(default=0, help_text="A titre indicatif, le prix de vente unitaire défini lors de cet achat")
     
@@ -164,7 +164,7 @@ class Sales(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=0)
+    quantity = models.FloatField(default=0)
     amount =  models.FloatField(default=0.0)
     buy_price = models.FloatField(default=0.0, help_text="Prix d'achat unitaire au moment de la vente pour le calcul du bénéfice")
 
@@ -286,10 +286,10 @@ class History(models.Model):
     sub_category = models.CharField(max_length=50, null=True, blank=True)
     product_name = models.CharField(max_length=50)
     product_id = models.IntegerField()
-    quantity = models.IntegerField()
+    quantity = models.FloatField()
 
-    unity_price = models.IntegerField(null=True)
-    total_price = models.IntegerField(null=True)
+    unity_price = models.FloatField(null=True)
+    total_price = models.FloatField(null=True)
     sale_price = models.FloatField(default=0.0, null=True, blank=True)
 
     created_at = models.DateTimeField(default=timezone.now)

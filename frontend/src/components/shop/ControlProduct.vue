@@ -230,7 +230,7 @@ export default {
         },
         perfromControlProduct(){
             if (!this.validateInputs()) return;
-            const quantity = parseInt(this.product.quantity, 10);
+            const quantity = parseFloat(this.product.quantity);
             if (isNaN(quantity)) {
                 this.showTostMsg("Quantité invalide", "warning", 3000);
                 return;

@@ -247,7 +247,7 @@ export default {
             const buy = Number(this.buy_price) || 0;
             if (sale == null || sale === '' || isNaN(sale)) return '—';
             const b = sale - buy;
-            return (b > 0) ? b.toFixed(0) : '—';
+            return (b > 0) ? b.toFixed(2) : '—';
         },
         benefitTotal() {
             const sale = this.effectiveSalePrice;
@@ -255,7 +255,7 @@ export default {
             const q = Number(this.product.quantity) || 0;
             if (sale == null || sale === '' || isNaN(sale) || q <= 0) return '—';
             const b = (sale - buy) * q;
-            return (b > 0) ? b.toFixed(0) : '—';
+            return (b > 0) ? b.toFixed(2) : '—';
         },
         hasBenefit() {
             const sale = this.effectiveSalePrice;
@@ -270,7 +270,7 @@ export default {
             const t = Number(this.product.total_buy_price);
             if (this.product.quantity === '' || this.product.total_buy_price === '' || isNaN(q) || isNaN(t) || q <= 0) return '—';
             const p = t / q;
-            return (p != null && !isNaN(p) && p > 0) ? p.toFixed(0) : '—';
+            return (p != null && !isNaN(p) && p > 0) ? p.toFixed(2) : '—';
         }
     },
     methods: {
@@ -278,7 +278,7 @@ export default {
             const q = Number(this.product.quantity);
             const t = Number(this.product.total_buy_price);
             const empty = this.product.quantity === '' || this.product.total_buy_price === '' || isNaN(q) || isNaN(t) || q <= 0;
-            this.buy_price = empty ? '' : (t / q).toFixed(0);
+            this.buy_price = empty ? '' : (t / q).toFixed(2);
         },
         updateInfo() {
             this.syncBuyPrice();
@@ -329,10 +329,12 @@ export default {
         async perfromSupplyProduct(){
             if (!this.validateInputs()) return;
             this.loading = true;
-            const quantity = Number(this.product.quantity);
-            const total_buy_price = parseFloat(this.product.total_buy_price);
-            const salePrice = this.effectiveSalePrice;
-            const buyPrice = quantity > 0 ? total_buy_price / quantity : 0;
+            
+            // Sécurisation des données pour éviter les erreurs 400 au backend
+            const quantity = Math.round(Number(this.product.quantity)) || 0;
+            const total_buy_price = parseFloat(this.product.total_buy_price) || 0;
+            const salePrice = this.effectiveSalePrice; // Déjà un nombre ou null
+
             try {
                 await productsService.supplyProduct(this.productId, { 
                     quantity, 
@@ -340,9 +342,9 @@ export default {
                     sale_price: salePrice,
                     created_at: this.product.created_at 
                 });
-                this.productProp.quantity = (this.productProp.quantity || 0) + parseInt(this.product.quantity, 10);
+                this.productProp.quantity = (this.productProp.quantity || 0) + quantity;
                 this.showTostMsg("Opération réussie avec succès", "success", 5000);
-                modalController.dismiss(null, "cancel");
+                modalController.dismiss(null, "confirm");
             } catch (err) {
                 this.errorOrRefresh(err, () => this.perfromSupplyProduct());
             } finally {

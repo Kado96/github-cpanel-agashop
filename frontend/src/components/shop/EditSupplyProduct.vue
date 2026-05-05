@@ -246,7 +246,7 @@ export default {
       const t = Number(this.product.total_buy_price);
       if (this.product.quantity === '' || this.product.total_buy_price === '' || isNaN(q) || isNaN(t) || q <= 0) return '—';
       const p = t / q;
-      return (p != null && !isNaN(p) && p > 0) ? p.toFixed(0) : '—';
+      return (p != null && !isNaN(p) && p > 0) ? p.toFixed(2) : '—';
     },
     effectiveSalePrice() {
       const v = this.product.sale_price;
@@ -263,7 +263,7 @@ export default {
       const buy = this.buyPricePerUnit;
       if (sale == null || isNaN(sale)) return '—';
       const b = sale - buy;
-      return (b > 0) ? b.toFixed(0) : '—';
+      return (b > 0) ? b.toFixed(2) : '—';
     },
     benefitTotal() {
       const sale = this.effectiveSalePrice;
@@ -271,7 +271,7 @@ export default {
       const q = Number(this.product.quantity) || 0;
       if (sale == null || isNaN(sale) || q <= 0) return '—';
       const b = (sale - buy) * q;
-      return (b > 0) ? b.toFixed(0) : '—';
+      return (b > 0) ? b.toFixed(2) : '—';
     },
     hasBenefit() {
       const sale = this.effectiveSalePrice;
