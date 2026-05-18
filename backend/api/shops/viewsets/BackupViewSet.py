@@ -24,7 +24,7 @@ class TempFileResponse(FileResponse):
         try:
             if os.path.exists(self.temp_file_path):
                 os.remove(self.temp_file_path)
-                print(f"Fichier temporaire supprimé avec succès : {self.temp_file_path}")
+                print(f"Fichier temporaire supprime avec succes : {self.temp_file_path}")
         except Exception as e:
             print(f"Erreur lors de la suppression du fichier temporaire {self.temp_file_path} : {str(e)}")
 
@@ -70,26 +70,26 @@ class BackupExportView(APIView):
             fd, temp_zip_path = tempfile.mkstemp(suffix='.zip')
             os.close(fd)  # Fermer le descripteur de fichier bas niveau ouvert par mkstemp
 
-            print(f"Création de l'archive ZIP temporaire : {temp_zip_path}")
+            print(f"Creation de l'archive ZIP temporaire : {temp_zip_path}")
             
             with zipfile.ZipFile(temp_zip_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
                 # A. Ajouter la base de données
                 # On la place à la racine de l'archive zip
                 zip_file.write(db_path, 'db.sqlite3')
-                print("Base de données ajoutée à l'archive ZIP.")
+                print("Base de donnees ajoutee a l'archive ZIP.")
 
                 # B. Ajouter le dossier media s'il existe
                 if os.path.exists(media_dir):
-                    print(f"Ajout du dossier media ({media_dir}) à l'archive...")
+                    print(f"Ajout du dossier media ({media_dir}) a l'archive...")
                     for root, _, files in os.walk(media_dir):
                         for file in files:
                             file_path = os.path.join(root, file)
                             # Créer un chemin relatif à l'intérieur du zip sous le dossier 'media/'
                             rel_path = os.path.join('media', os.path.relpath(file_path, media_dir))
                             zip_file.write(file_path, rel_path)
-                    print("Dossier media ajouté à l'archive ZIP.")
+                    print("Dossier media ajoute a l'archive ZIP.")
                 else:
-                    print("Aucun dossier media détecté sur le serveur.")
+                    print("Aucun dossier media detecte sur le serveur.")
 
             # 4. Renvoyer le fichier ZIP généré avec notre réponse temporaire autonettoyante
             response = TempFileResponse(
