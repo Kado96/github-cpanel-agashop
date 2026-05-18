@@ -56,6 +56,14 @@
          >
            <ion-icon size="large" color="danger" :icon="closeCircle"></ion-icon>
          </ion-badge>
+          <!-- Bouton historique des achats -->
+          <ion-badge
+            color="light"
+            style="position: absolute; bottom: 0; right: 0; padding: 0; border-radius: 50%;"
+            @click.stop="openSupplyHistory(product)"
+          >
+            <ion-icon size="large" color="primary" :icon="receiptOutline"></ion-icon>
+          </ion-badge>
          <img :src="product.product.image" />
           <ion-label>
             {{product.name}}
@@ -92,7 +100,12 @@
               }} BIF</ion-text>
             </p>
         </ion-label>
-        <ion-icon size="large" color="danger" :icon="close" slot="end"></ion-icon>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" @click.stop="openSupplyHistory(product)" title="Historique des achats">
+            <ion-icon color="primary" :icon="receiptOutline"></ion-icon>
+          </ion-button>
+          <ion-icon size="large" color="danger" :icon="close"></ion-icon>
+        </ion-buttons>
       </ion-item>
     </div>
     <div v-else class="ion-padding ion-text-center">
@@ -147,9 +160,11 @@
    close,
    closeCircle,
    timer,
+   receiptOutline,
  } from 'ionicons/icons'
 import ControlProduct from '../../components/shop/ControlProduct.vue';
 import ControlFrequency from '../../components/shop/ControlFrequency.vue';
+import ProductSupplyHistory from '../../components/shop/ProductSupplyHistory.vue';
 import { productsService, categoriesService, subCategoriesService } from '../../services/api';
 import globalMixins from '../../composables/mixins';
  
@@ -202,6 +217,7 @@ export default {
        close,
        closeCircle,
        timer,
+       receiptOutline,
        categories: [],
        searchTerm: "",
      }
@@ -310,6 +326,15 @@ export default {
            });
            await alert.present();
        },
+       async openSupplyHistory(product) {
+            const modal = await modalController.create({
+                component: ProductSupplyHistory,
+                componentProps: { productProp: product },
+                initialBreakpoint: 0.85,
+                breakpoints: [0, 0.85, 1],
+            });
+            await modal.present();
+        },
        cancelControl(product) {
            productsService.cancelControl(product.id)
                .then(() => {

@@ -18,5 +18,6 @@ router.register("expenses", ExpenseViewSet, basename="expenses")
 router.register("media", MediaViewSet, basename="media")
 
 urlpatterns = [
+    path('backup/download/', BackupExportView.as_view(), name='backup-download'),
     path('', include(router.urls)),
 ]

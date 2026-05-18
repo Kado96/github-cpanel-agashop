@@ -8,3 +8,4 @@ from .SupplyViewSet import SupplyViewSet
 from .HistoryViewSet import HistoryViewSet
 from .ExpenseViewSet import ExpenseViewSet
 from .MediaViewSet import MediaViewSet
+from .BackupViewSet import BackupExportView
