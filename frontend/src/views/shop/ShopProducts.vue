@@ -332,7 +332,8 @@ export default {
         isBasicLoading: false,
         hasMoreBasic: true,
         currentBasicPage: 1,
-        searchTimeout: null
+        searchTimeout: null,
+        totalShopProductsCount: 0
       }
     },
     computed:{
@@ -369,7 +370,7 @@ export default {
         },
         /** Nombre de produits dans la boutique (pour affichage X/Y dans la toolbar) */
         shopProductsCount(){
-            return (this.$store.state.products || []).length
+            return this.totalShopProductsCount || (this.$store.state.products || []).length
         },
         // Seuls les utilisateurs "privilégiés" (admin / agent) voient Ajouter / Supprimer
         canManageCatalog(){
@@ -431,6 +432,11 @@ export default {
                 
                 if (page === 1) {
                   this.$store.state.products = results;
+                  if (data && typeof data.count !== 'undefined') {
+                    this.totalShopProductsCount = data.count;
+                  } else {
+                    this.totalShopProductsCount = results.length;
+                  }
                 } else {
                   this.$store.state.products = [...(this.$store.state.products || []), ...results];
                 }
@@ -563,6 +569,7 @@ export default {
               try{
                 await productsService.deleteProduct(product.id)
                 this.$store.state.products = this.$store.state.products.filter(p => p.id !== product.id)
+                if (this.totalShopProductsCount > 0) this.totalShopProductsCount--;
                 this.refreshInShopIds()
                 this.showTostMsg("Produit retiré de votre boutique.", "success", 3000)
               }catch(err){
@@ -581,6 +588,7 @@ export default {
             try {
               const res = await productsService.createProduct(payload)
               this.$store.state.products.push(res.data)
+              this.totalShopProductsCount++;
               this.refreshInShopIds()
               this.showTostMsg("Produit ajouté à votre boutique.", "success", 3000)
             } catch (err) {

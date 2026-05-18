@@ -102,13 +102,15 @@ class BasicProductViewSet(viewsets.ModelViewSet):
 				with open(image_path, "rb") as f:
 					instance.image.save(os.path.basename(image_path), File(f), save=True)
 
+from rest_framework.filters import SearchFilter
+
 class ProductViewSet(viewsets.ModelViewSet):
 	authentication_classes = SessionAuthentication, JWTAuthentication
 	permission_classes = IsAuthenticated,
 	queryset = Product.objects.all()
 	serializer_class = ProductSerializer
 	ordering = ['-created_at']
-	filter_backends = [filters.DjangoFilterBackend, ]
+	filter_backends = [filters.DjangoFilterBackend, SearchFilter]
 	filterset_fields = {
 		'shop': ['exact'],
 		'name': ['icontains'],
@@ -117,6 +119,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 		'updated_at': ['gte', 'lte'],
 		'id': ['gt'],
 	}
+	search_fields = ['name', 'product__name']
 
 
 	def list(self, request, *args, **kwargs):

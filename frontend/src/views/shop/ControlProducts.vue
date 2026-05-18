@@ -220,28 +220,30 @@ export default {
        receiptOutline,
        categories: [],
        searchTerm: "",
+       searchTimeout: null,
      }
    },
+
    computed:{
         shopId(){
             return this.shop ? this.shop.id : null
         },
-        filteredControlledProducts() {
-            if (!this.searchTerm) return this.controlledProducts;
-            const search = this.searchTerm.toLowerCase();
-            return this.controlledProducts.filter(p => 
-                p.name.toLowerCase().includes(search) || 
-                (p.product && p.product.name.toLowerCase().includes(search))
-            );
-        },
-        filteredUnControlledProducts() {
-            if (!this.searchTerm) return this.unControlledProducts;
-            const search = this.searchTerm.toLowerCase();
-            return this.unControlledProducts.filter(p => 
-                p.name.toLowerCase().includes(search) || 
-                (p.product && p.product.name.toLowerCase().includes(search))
-            );
-        }
+         filteredControlledProducts() {
+             if (!this.searchTerm) return this.controlledProducts;
+             const search = this.searchTerm.toLowerCase();
+             return this.controlledProducts.filter(p => 
+                 p.name.toLowerCase().includes(search) || 
+                 (p.product && p.product.name.toLowerCase().includes(search))
+             );
+         },
+         filteredUnControlledProducts() {
+             if (!this.searchTerm) return this.unControlledProducts;
+             const search = this.searchTerm.toLowerCase();
+             return this.unControlledProducts.filter(p => 
+                 p.name.toLowerCase().includes(search) || 
+                 (p.product && p.product.name.toLowerCase().includes(search))
+             );
+         }
     },
     beforeMount(){
         this.$store.state.shop = this.getShopFromLocalStorage()
@@ -259,14 +261,25 @@ export default {
    methods:{
        fetchProducts(){
            if (!this.shopId) return;
-           productsService.getProducts(this.shopId)
-           .then((res)=>{
-               this.$store.state.products=res.data.results
-               this.controlledProducts = this.$store.state.products.filter(x=>x.controlled)
-               this.unControlledProducts = this.$store.state.products.filter(x=>x.controlled==false && x.quantity>0)
-           }).catch((err)=>{
-               this.errorOrRefresh(err, () => this.fetchProducts())
-           }) 
+           const allProducts = [];
+           const fetchPage = (page = 1) => {
+               productsService.getProducts(this.shopId, { page, page_size: 500 })
+               .then((res)=>{
+                   const results = res.data.results || res.data || [];
+                   allProducts.push(...results);
+                   
+                   if (res.data.next) {
+                       fetchPage(page + 1);
+                   } else {
+                       this.$store.state.products = allProducts;
+                       this.controlledProducts = this.$store.state.products.filter(x=>x.controlled);
+                       this.unControlledProducts = this.$store.state.products.filter(x=>x.controlled==false && x.quantity>0);
+                   }
+               }).catch((err)=>{
+                   this.errorOrRefresh(err, () => this.fetchProducts())
+               })
+           };
+           fetchPage(1);
        },
        async fetchCategories() {
          try {

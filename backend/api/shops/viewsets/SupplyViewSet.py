@@ -1,6 +1,7 @@
 from .dependancies import *
 from django.db import models as db_models
-
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 class SupplyViewSet(viewsets.ModelViewSet):
 	authentication_classes = SessionAuthentication, JWTAuthentication
@@ -8,11 +9,13 @@ class SupplyViewSet(viewsets.ModelViewSet):
 	queryset = Supply.objects.all()
 	serializer_class = SupplySerializer
 	ordering = ['-created_at']
+	filter_backends = [DjangoFilterBackend, SearchFilter]
 	filterset_fields = {
 		'product': ['exact'],
 		'created_at': ['gte', 'lte'],
 		'id': ['gt'],
 	}
+	search_fields = ['product__name']
 
 	def get_serializer_class(self):
 		if self.action in ["create", "update", "partial_update"]:

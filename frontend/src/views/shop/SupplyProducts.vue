@@ -315,13 +315,15 @@ export default {
       const res = val?.results ?? [];
       const tot = val?.totals ?? null;
       const totQty = val?.totals_quantity ?? null;
-      this.supplies = this.keyword ? this.filterSupplies(res, this.keyword) : res;
+      this.supplies = res;
       this.totals = tot;
       this.totals_quantity = totQty;
     },
     keyword(v) {
-      const base = this.$store.state.supplies?.results ?? [];
-      this.supplies = v ? this.filterSupplies(base, v) : base;
+      if (this.searchTimeout) clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.fetchSupplies(1, true);
+      }, 400);
     },
    },
    computed: {
@@ -400,20 +402,23 @@ export default {
              this.filterSubCategories = [];
            });
        },
-        fetchSupplies(page = 1) {
+        fetchSupplies(page = 1, isSearch = false) {
           if (!this.shopId) return;
           // Si page est un événement (clic direct du bouton), on revient à 1
           const pageNumber = typeof page === 'number' ? page : 1;
           
           this.loading = true;
-          if (pageNumber === 1) {
+          if (pageNumber === 1 && !isSearch) {
             this.dateRange = { du: '', au: '' };
             this.keyword = '';
             this.filterCategoryId = null;
             this.filterSubCategoryId = null;
           }
 
-          suppliesService.getSupplies(this.shopId, { page: pageNumber, page_size: 20 })
+          const params = { page: pageNumber, page_size: 20 };
+          if (this.keyword) params.search = this.keyword;
+
+          suppliesService.getSupplies(this.shopId, params)
             .then((res) => {
               const data = res?.data ?? {};
               const results = data?.results ?? [];

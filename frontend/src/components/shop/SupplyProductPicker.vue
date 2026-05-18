@@ -237,7 +237,8 @@ export default {
       localProducts: [...this.products],
       currentPage: 1,
       hasNextPage: true,
-      isLoading: false
+      isLoading: false,
+      totalCountFromBackend: 0
     };
   },
   watch: {
@@ -269,7 +270,7 @@ export default {
       return !!this.active_user;
     },
     shopProductsCount() {
-      return (this.$store?.state?.products || []).length;
+      return this.totalCountFromBackend || (this.$store?.state?.products || []).length;
     },
     filteredProducts() {
       // Le filtrage se fait désormais majoritairement côté backend
@@ -290,7 +291,13 @@ export default {
       if (!shopId) return;
       try {
         const res = await productsService.getProducts(shopId, { page_size: 1000 });
-        this.$store.state.products = res.data.results || res.data || [];
+        const results = res.data.results || res.data || [];
+        this.$store.state.products = results;
+        if (res.data && typeof res.data.count !== 'undefined') {
+          this.totalCountFromBackend = res.data.count;
+        } else {
+          this.totalCountFromBackend = results.length;
+        }
       } catch (err) {
         console.error('Error fetching active shop products:', err);
       }
