@@ -221,7 +221,7 @@ export default {
       this.loading = true;
 
       try {
-        const res = await productsService.getProducts(this.shopId);
+        const res = await productsService.getProducts(this.shopId, { page_size: 5000 });
         const data = res.data;
         const products = data.results || data || [];
         const totals = data.totals || { market_value: 0, cost_value: 0, quantity: 0 };
@@ -368,6 +368,7 @@ export default {
   flex-direction: column;
   align-items: center;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  min-width: 0;
 }
 
 .donut-wrapper {
@@ -486,18 +487,65 @@ export default {
   padding: 12px 0;
   border-bottom: 1px solid #f1f5f9;
   font-size: 0.95rem;
+  align-items: center;
+  min-width: 0;
 }
 
 .art-row:last-child { border-bottom: none; }
 
-.art-rank { font-weight: 800; color: var(--ion-color-secondary); width: 25px; }
-.art-name { flex: 1; color: #475569; font-weight: 600; }
-.art-val { font-weight: 800; color: #0f172a; }
+.art-rank { font-weight: 800; color: var(--ion-color-secondary); width: 25px; flex-shrink: 0; }
+.art-name { flex: 1; color: #475569; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.art-val { font-weight: 800; color: #0f172a; white-space: nowrap; flex-shrink: 0; margin-left: 8px; }
 
 .header-title-container {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+@media (max-width: 480px) {
+  .summary-box {
+    padding: 16px 12px;
+    margin: 10px 6px;
+  }
+  .summary-title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+  .summary-label {
+    font-size: 0.85rem;
+  }
+  .summary-value {
+    font-size: 0.95rem;
+  }
+  .btn-rect {
+    height: 48px;
+    font-size: 0.9rem;
+  }
+  .actions-group {
+    padding: 0 6px;
+    margin-bottom: 15px;
+  }
+  .chart-area {
+    padding: 16px 10px;
+    margin: 0 6px 15px 6px;
+  }
+  .box-title {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  .art-row {
+    font-size: 0.85rem;
+    padding: 10px 0;
+  }
+  .view-toggle-pills {
+    padding: 0 6px;
+    margin: 10px 0 20px 0;
+  }
+  .pill-btn-ion {
+    height: 44px;
+    font-size: 0.85rem;
+  }
 }
 </style>

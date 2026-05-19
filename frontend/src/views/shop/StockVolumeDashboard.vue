@@ -226,7 +226,7 @@ export default {
       this.loading = true;
 
       try {
-        const res = await productsService.getProducts(this.shopId);
+        const res = await productsService.getProducts(this.shopId, { page_size: 5000 });
         const products = res.data.results || res.data || [];
         
         this.productsCount = products.length;

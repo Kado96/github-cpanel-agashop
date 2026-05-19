@@ -232,7 +232,7 @@ export default {
             });
             return cat && Number(cat.id) === Number(this.filterCategoryId);
           }
-          return sub?.category?.id === this.filterCategoryId;
+          return Number(sub?.category?.id || sub?.category) === Number(this.filterCategoryId);
         });
       }
       return list.sort((a, b) => a.quantity - b.quantity);
@@ -278,7 +278,8 @@ export default {
       try {
         const res = await productsService.getProducts(this.shopId, {
           created_at__gte: this.startDate,
-          created_at__lte: this.endDate
+          created_at__lte: this.endDate,
+          page_size: 5000
         });
         this.products = res.data.results || res.data || [];
       } catch (err) {
@@ -482,17 +483,23 @@ export default {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #f1f5f9;
+  flex-shrink: 0;
 }
 
 .art-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .art-name {
   font-weight: 800;
   color: #0f172a;
   font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .art-status {
@@ -501,17 +508,22 @@ export default {
   margin-top: 4px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stock-action-box {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .stock-qty-val {
   font-size: 1.2rem;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .supply-icon-btn {
@@ -537,22 +549,14 @@ export default {
   padding: 8px 16px 16px 16px;
 }
 
-.art-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.art-name {
-  font-weight: 800;
-  color: #0f172a;
-  font-size: 1rem;
-}
-
 .art-cat {
   font-size: 0.8rem;
   color: #64748b;
   font-weight: 600;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-title-container {
@@ -560,5 +564,46 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: 10px 10px;
+    margin: 0 6px;
+    font-size: 0.7rem;
+  }
+  .sales-list-container {
+    padding: 0 6px 60px 6px;
+  }
+  .sale-row {
+    padding: 12px 10px;
+    margin: 0 6px 8px 6px;
+    font-size: 0.85rem;
+  }
+  .small-thumb {
+    width: 36px;
+    height: 44px;
+    margin-right: 8px;
+  }
+  .art-name {
+    font-size: 0.9rem;
+  }
+  .art-cat {
+    font-size: 0.7rem;
+  }
+  .art-status {
+    font-size: 0.7rem;
+  }
+  .stock-qty-val {
+    font-size: 1rem;
+  }
+  .revenue-summary {
+    padding: 12px;
+    margin: 10px 6px;
+    font-size: 1rem;
+  }
+  .selection-area {
+    margin: 10px 6px;
+  }
 }
 </style>

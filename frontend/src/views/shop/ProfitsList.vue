@@ -361,19 +361,19 @@ export default {
           salesService.getSales(this.shopId, { 
             created_at__gte: firstDay, 
             created_at__lte: lastDay,
-            limit: 1000
+            page_size: 1000
           }),
           expensesService.getExpenses(this.shopId, {
             expense_date__gte: firstDay,
             expense_date__lte: lastDay,
             created_at__gte: firstDay, 
             created_at__lte: lastDay,
-            limit: 1000
+            page_size: 1000
           }),
           suppliesService.getSupplies(this.shopId, {
             created_at__gte: firstDay,
             created_at__lte: lastDay,
-            limit: 1000
+            page_size: 1000
           })
         ]);
 
@@ -615,9 +615,9 @@ export default {
   margin: 10px 12px 0 12px;
 }
 
-.col { display: flex; align-items: center; }
-.item-col { flex: 2; }
-.val-col { flex: 1.5; justify-content: flex-end; }
+.col { display: flex; align-items: center; min-width: 0; }
+.item-col { flex: 2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.val-col { flex: 1.5; justify-content: flex-end; white-space: nowrap; flex-shrink: 0; }
 
 .sales-list-container { padding: 0 12px 30px 12px; }
 
@@ -633,6 +633,7 @@ export default {
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   animation: fadeInUp 0.4s ease-out both;
+  align-items: center;
 }
 
 @keyframes fadeInUp {
@@ -693,5 +694,37 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: 10px 10px;
+    margin: 10px 6px 0 6px;
+    font-size: 0.7rem;
+  }
+  .sales-list-container {
+    padding: 0 6px 30px 6px;
+  }
+  .sale-row {
+    padding: 12px 10px;
+    margin: 0 6px 8px 6px;
+    font-size: 0.85rem;
+  }
+  .summary-card {
+    padding: 12px;
+  }
+  .summary-value {
+    font-size: 1.15rem;
+  }
+  .summary-label {
+    font-size: 0.75rem;
+  }
+  .selection-area {
+    margin: 10px 6px;
+  }
+  .range-selector-container {
+    padding: 10px 8px;
+    gap: 8px;
+  }
 }
 </style>

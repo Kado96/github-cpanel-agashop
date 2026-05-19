@@ -116,6 +116,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 		'name': ['icontains'],
 		'product__name': ['icontains'],
 		'product__sub_category': ['exact'],
+		'product__sub_category__category': ['exact'],
 		'updated_at': ['gte', 'lte'],
 		'id': ['gt'],
 	}
@@ -123,7 +124,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 	def list(self, request, *args, **kwargs):
+		from api.shops.utils import parse_date_range
+		str_du = request.query_params.get('created_at__gte')
+		str_au = request.query_params.get('created_at__lte')
+
 		queryset = self.filter_queryset(self.get_queryset())
+
+		start_dt, end_dt = parse_date_range(str_du, str_au)
+		if start_dt:
+			queryset = queryset.filter(created_at__gte=start_dt)
+		if end_dt:
+			queryset = queryset.filter(created_at__lte=end_dt)
 		
 		# Calcul des agrégats pour éviter au front de tout recalculer
 		# Valeur de vente totale : somme(quantité * prix_vente)

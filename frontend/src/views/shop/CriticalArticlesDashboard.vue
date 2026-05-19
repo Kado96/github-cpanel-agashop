@@ -197,7 +197,7 @@ export default {
       this.loading = true;
 
       try {
-        const res = await productsService.getProducts(this.shopId);
+        const res = await productsService.getProducts(this.shopId, { page_size: 5000 });
         const products = res.data.results || res.data || [];
         
         this.ruptureCount = products.filter(p => p.quantity <= 0).length;

@@ -345,7 +345,8 @@ export default {
       try {
         const res = await salesService.getSales(this.shopId, { 
           created_at__gte: firstDay, 
-          created_at__lte: lastDay 
+          created_at__lte: lastDay,
+          page_size: 1000
         });
         this.sales = res.data.results || res.data || [];
         this.monthlyTotal = this.sales.reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0);
@@ -587,10 +588,10 @@ export default {
   margin: 0 12px;
 }
 
-.col { display: flex; align-items: center; }
-.article-col { flex: 2; }
-.qty-col { flex: 0.5; justify-content: center; }
-.total-col { flex: 1.2; justify-content: flex-end; }
+.col { display: flex; align-items: center; min-width: 0; }
+.article-col { flex: 2; overflow: hidden; }
+.qty-col { flex: 0.5; justify-content: center; white-space: nowrap; flex-shrink: 0; }
+.total-col { flex: 1.2; justify-content: flex-end; white-space: nowrap; flex-shrink: 0; }
 
 .sales-list-container {
   padding: 0 12px 30px 12px;
@@ -608,16 +609,22 @@ export default {
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   animation: fadeInUp 0.4s ease-out both;
+  align-items: center;
 }
 
 .art-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .art-name {
   font-weight: 800;
   color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .art-cat {
@@ -625,6 +632,9 @@ export default {
   color: #64748b;
   font-weight: 600;
   margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @keyframes fadeInUp {
@@ -684,4 +694,38 @@ export default {
 
 .year-item:active { background: #f8fafc; }
 .year-item-active { color: var(--ion-color-secondary); font-weight: 800; background: #f0f7ff; }
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: 10px 10px;
+    margin: 0 6px;
+    font-size: 0.7rem;
+  }
+  .sales-list-container {
+    padding: 0 6px 30px 6px;
+  }
+  .sale-row {
+    padding: 12px 10px;
+    margin: 0 6px 8px 6px;
+    font-size: 0.85rem;
+  }
+  .art-name {
+    font-size: 0.9rem;
+  }
+  .art-cat {
+    font-size: 0.7rem;
+  }
+  .revenue-summary {
+    padding: 12px;
+    margin: 10px 6px;
+    font-size: 1rem;
+  }
+  .selection-area {
+    margin: 10px 6px;
+  }
+  .range-selector-container {
+    padding: 10px 8px;
+    gap: 8px;
+  }
+}
 </style>

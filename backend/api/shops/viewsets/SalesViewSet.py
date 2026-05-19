@@ -20,7 +20,6 @@ class SalesViewSet(viewsets.ModelViewSet):
 	filter_backends = [filters.DjangoFilterBackend, ]
 	filterset_fields = {
 		'product': ['exact'],
-		'created_at': ['gte', 'lte'],
 		'id': ['gt'],
 	}
 

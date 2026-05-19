@@ -370,7 +370,8 @@ export default {
           expense_date__gte: firstDay, 
           expense_date__lte: lastDay,
           created_at__gte: firstDay,
-          created_at__lte: lastDay
+          created_at__lte: lastDay,
+          page_size: 1000
         });
         const rawExpenses = res.data.results || res.data || [];
         // Sécurité : filtrage local si le backend ignore les paramètres de date
@@ -667,11 +668,11 @@ export default {
   margin: 0 12px;
 }
 
-.col { display: flex; align-items: center; }
+.col { display: flex; align-items: center; min-width: 0; }
 .article-col { flex: 2; overflow: hidden; }
-.total-col { flex: 1.5; justify-content: flex-end; align-items: center; gap: 8px; }
+.total-col { flex: 1.5; justify-content: flex-end; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0; }
 .options-icon { font-size: 20px; color: #64748b; }
-.price-val { font-weight: 800; }
+.price-val { font-weight: 800; white-space: nowrap; }
 
 .clickable-row { cursor: pointer; transition: background-color 0.2s; }
 .clickable-row:active { background-color: #f8fafc; }
@@ -692,6 +693,7 @@ export default {
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   animation: fadeInUp 0.4s ease-out both;
+  align-items: center;
 }
 
 @keyframes fadeInUp {
@@ -776,6 +778,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
 .art-cat {
@@ -789,6 +793,9 @@ export default {
   border-radius: 6px;
   display: inline-block;
   width: fit-content;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .art-desc {
@@ -796,11 +803,48 @@ export default {
   font-weight: 700;
   color: #1e293b;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 ion-fab {
   bottom: 72px !important;
   right: 16px !important;
   z-index: 10001 !important;
+}
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: 10px 10px;
+    margin: 0 6px;
+    font-size: 0.7rem;
+  }
+  .sales-list-container {
+    padding: 0 6px 60px 6px;
+  }
+  .sale-row {
+    padding: 12px 10px;
+    margin: 0 6px 8px 6px;
+    font-size: 0.85rem;
+  }
+  .art-desc {
+    font-size: 0.95rem;
+  }
+  .art-cat {
+    font-size: 0.75rem;
+  }
+  .revenue-summary {
+    padding: 12px;
+    margin: 10px 6px;
+    font-size: 1rem;
+  }
+  .selection-area {
+    margin: 10px 6px;
+  }
+  .range-selector-container {
+    padding: 10px 8px;
+    gap: 8px;
+  }
 }
 </style>

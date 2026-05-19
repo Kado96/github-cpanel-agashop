@@ -308,6 +308,18 @@ export default {
     this.fetchDashboardData();
   },
   methods: {
+    getShopFromLocalStorage() {
+      try {
+        const s = localStorage.getItem('current_shop');
+        return s ? JSON.parse(s) : null;
+      } catch (e) {
+        return null;
+      }
+    },
+    money(val) {
+      if (!val) return "0";
+      return parseFloat(val).toLocaleString('fr-FR');
+    },
     formatSmallMoney(val) {
       if (val === 0) return '0';
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -338,7 +350,7 @@ export default {
         const res = await salesService.getSales(this.shopId, {
           created_at__gte: yearStart,
           created_at__lte: yearEnd,
-          limit: 1000 
+          page_size: 1000 
         });
         const allSales = res.data.results || res.data || [];
 
@@ -353,11 +365,11 @@ export default {
         // 3. Breakdown by CATEGORY (for Donut)
         const catMap = {};
         allSales.forEach(s => {
-          // Attempt to find category name in nested items
-          let catName = "Autres";
-          if (s.items && s.items.length > 0) {
-            catName = s.items[0].product?.sub_category?.category?.name || s.items[0].product?.category?.name || "Autres";
-          }
+          const catName = s.product?.product?.sub_category?.category_name || 
+                          s.product?.product?.sub_category?.category?.name || 
+                          s.product?.category?.name || 
+                          (s.items && s.items.length > 0 ? (s.items[0].product?.sub_category?.category?.name || s.items[0].product?.category?.name) : null) || 
+                          "Autres";
           if (!catMap[catName]) catMap[catName] = 0;
           catMap[catName] += parseFloat(s.amount) || 0;
         });

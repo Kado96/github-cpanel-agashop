@@ -413,8 +413,8 @@ export default {
 
         // 2. Fetch all sales/expenses for the yearly evolution curve
         const [ySalesRes, yExpRes] = await Promise.all([
-          salesService.getSales(this.shopId, { created_at__gte: yearStartStr, created_at__lte: todayStr, limit: 1000 }),
-          expensesService.getExpenses(this.shopId, { expense_date__gte: yearStartStr, expense_date__lte: todayStr, limit: 1000 })
+          salesService.getSales(this.shopId, { created_at__gte: yearStartStr, created_at__lte: todayStr, page_size: 1000 }),
+          expensesService.getExpenses(this.shopId, { expense_date__gte: yearStartStr, expense_date__lte: todayStr, page_size: 1000 })
         ]);
 
         const allSales = ySalesRes.data.results || ySalesRes.data || [];

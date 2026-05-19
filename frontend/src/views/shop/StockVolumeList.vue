@@ -214,8 +214,8 @@ export default {
       if (this.filterCategoryId) {
         list = list.filter(p => {
           const sub = p.product?.sub_category;
-          const catId = typeof sub === 'object' ? sub.category?.id : null;
-          return catId === this.filterCategoryId;
+          const catId = typeof sub === 'object' ? (sub.category?.id || sub.category) : null;
+          return Number(catId) === Number(this.filterCategoryId);
         });
       }
       if (this.keyword) {
@@ -266,7 +266,8 @@ export default {
       try {
         const res = await productsService.getProducts(this.shopId, {
           created_at__gte: this.startDate,
-          created_at__lte: this.endDate
+          created_at__lte: this.endDate,
+          page_size: 5000
         });
         this.products = res.data.results || res.data || [];
       } catch (err) {
@@ -455,22 +456,23 @@ export default {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #f1f5f9;
+  flex-shrink: 0;
 }
 
 .art-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .art-name {
   font-weight: 800;
   color: #0f172a;
   font-size: 1rem;
-}
-
-.art-info {
-  display: flex;
-  flex-direction: column;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .art-cat {
@@ -478,6 +480,9 @@ export default {
   color: #64748b;
   font-weight: 600;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stock-qty-badge {
@@ -488,6 +493,8 @@ export default {
   color: #fff;
   min-width: 60px;
   text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .blue-bg { background: var(--ion-color-secondary); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
@@ -515,5 +522,45 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: 10px 10px;
+    margin: 0 6px;
+    font-size: 0.7rem;
+  }
+  .sales-list-container {
+    padding: 0 6px 60px 6px;
+  }
+  .sale-row {
+    padding: 12px 10px;
+    margin: 0 6px 8px 6px;
+    font-size: 0.85rem;
+  }
+  .small-thumb {
+    width: 36px;
+    height: 44px;
+    margin-right: 8px;
+  }
+  .art-name {
+    font-size: 0.9rem;
+  }
+  .art-cat {
+    font-size: 0.7rem;
+  }
+  .stock-qty-badge {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    min-width: 45px;
+  }
+  .revenue-summary {
+    padding: 12px;
+    margin: 10px 6px;
+    font-size: 1rem;
+  }
+  .selection-area {
+    margin: 10px 6px;
+  }
 }
 </style>

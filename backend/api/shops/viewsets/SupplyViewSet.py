@@ -12,7 +12,6 @@ class SupplyViewSet(viewsets.ModelViewSet):
 	filter_backends = [DjangoFilterBackend, SearchFilter]
 	filterset_fields = {
 		'product': ['exact'],
-		'created_at': ['gte', 'lte'],
 		'id': ['gt'],
 	}
 	search_fields = ['product__name']
@@ -37,11 +36,21 @@ class SupplyViewSet(viewsets.ModelViewSet):
 		).order_by('-created_at', '-id')
 
 	def list(self, request, *args, **kwargs):
+		from api.shops.utils import parse_date_range
+		str_du = request.query_params.get('created_at__gte')
+		str_au = request.query_params.get('created_at__lte')
+
 		# 1. Utilisation du queryset standard avec filtres
 		queryset = self.filter_queryset(self.get_queryset())
 		shop_id = request.query_params.get('shop')
 		if shop_id:
 			queryset = queryset.filter(product__shop_id=shop_id)
+
+		start_dt, end_dt = parse_date_range(str_du, str_au)
+		if start_dt:
+			queryset = queryset.filter(created_at__gte=start_dt)
+		if end_dt:
+			queryset = queryset.filter(created_at__lte=end_dt)
 
 		# 2. Calcul des totaux
 		tot = self._supply_totals(queryset)

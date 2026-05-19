@@ -68,14 +68,14 @@
             <span class="picker-label">Du :</span>
             <ion-datetime-button datetime="active-start-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="active-start-date" presentation="date" v-model="startDate" @ionChange="fetchProducts" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="active-start-date" presentation="date" v-model="startDate" @ionChange="initLoading" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
           <div class="date-picker-item">
             <span class="picker-label">Au :</span>
             <ion-datetime-button datetime="active-end-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="active-end-date" presentation="date" v-model="endDate" @ionChange="fetchProducts" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="active-end-date" presentation="date" v-model="endDate" @ionChange="initLoading" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
         </div>
@@ -132,6 +132,14 @@
 
 <script>
 import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonButtons,
+  IonButton,
+  IonTitle,
+  IonContent,
+  IonIcon,
   IonProgressBar,
   IonSearchbar,
   IonSelect,
@@ -301,6 +309,13 @@ export default {
           // Si le backend supporte pas, on filtrera peut-être différemment ou on laisse ainsi
           // On tente l'approche standard
           params['product__sub_category__category'] = this.filterCategoryId;
+        }
+
+        if (this.startDate) {
+          params['created_at__gte'] = this.startDate;
+        }
+        if (this.endDate) {
+          params['created_at__lte'] = this.endDate;
         }
 
         const res = await productsService.getProducts(this.shopId, params);
@@ -516,17 +531,23 @@ export default {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #f1f5f9;
+  flex-shrink: 0;
 }
 
 .art-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .art-name {
   font-weight: 800;
   color: #0f172a;
   font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .art-cat {
@@ -534,16 +555,21 @@ export default {
   color: #64748b;
   font-weight: 600;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stock-info {
   text-align: right;
+  flex-shrink: 0;
 }
 
 .stock-qty {
   font-weight: 800;
   color: var(--ion-color-secondary);
   font-size: 1.1rem;
+  white-space: nowrap;
 }
 
 .stock-val {
@@ -551,6 +577,7 @@ export default {
   color: #475569;
   font-weight: 700;
   margin-top: 2px;
+  white-space: nowrap;
 }
 
 .orange-text {
@@ -577,28 +604,55 @@ export default {
   padding: 8px 16px 16px 16px;
 }
 
-.art-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.art-name {
-  font-weight: 800;
-  color: #0f172a;
-  font-size: 1rem;
-}
-
-.art-cat {
-  font-size: 0.8rem;
-  color: #64748b;
-  font-weight: 600;
-  margin-top: 2px;
-}
-
 .header-title-container {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: 10px 10px;
+    margin: 0 6px;
+    font-size: 0.7rem;
+  }
+  .sales-list-container {
+    padding: 0 6px 60px 6px;
+  }
+  .sale-row {
+    padding: 12px 10px;
+    margin: 0 6px 8px 6px;
+    font-size: 0.85rem;
+  }
+  .small-thumb {
+    width: 36px;
+    height: 44px;
+    margin-right: 8px;
+  }
+  .art-name {
+    font-size: 0.9rem;
+  }
+  .art-cat {
+    font-size: 0.7rem;
+  }
+  .stock-qty {
+    font-size: 0.95rem;
+  }
+  .stock-val {
+    font-size: 0.7rem;
+  }
+  .revenue-summary {
+    padding: 12px;
+    margin: 10px 6px;
+    font-size: 1rem;
+  }
+  .selection-area {
+    margin: 10px 6px;
+  }
+  .range-selector-container {
+    padding: 10px 8px;
+    gap: 8px;
+  }
 }
 </style>

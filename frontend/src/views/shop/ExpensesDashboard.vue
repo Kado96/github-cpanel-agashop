@@ -323,7 +323,7 @@ export default {
           expense_date__lte: yearEnd,
           created_at__gte: yearStart,
           created_at__lte: yearEnd,
-          limit: 1000 
+          page_size: 1000 
         });
         const allExpenses = res.data.results || res.data || [];
 
