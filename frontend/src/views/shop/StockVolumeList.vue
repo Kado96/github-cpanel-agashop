@@ -98,7 +98,7 @@
         <div v-for="p in filteredProducts" :key="p.id" class="sale-row">
           <div class="col article-col">
             <ion-thumbnail slot="start" class="small-thumb">
-              <img :src="p.product?.image || '/placeholder.png'" />
+              <ion-img :src="productImage(p)" @ionError="(e) => e.target.src = '/placeholder.png'"></ion-img>
             </ion-thumbnail>
             <div class="art-info">
               <div class="art-name">{{ p.product?.name }}</div>
@@ -142,7 +142,8 @@ import {
   IonInput,
   IonDatetimeButton,
   IonModal,
-  IonDatetime
+  IonDatetime,
+  IonImg
 } from '@ionic/vue';
 import { 
   arrowBackOutline, 
@@ -180,7 +181,8 @@ export default {
     IonInput,
     IonDatetimeButton,
     IonModal,
-    IonDatetime
+    IonDatetime,
+    IonImg
   },
   data() {
     return {

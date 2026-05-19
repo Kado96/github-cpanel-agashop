@@ -417,6 +417,8 @@ export default {
 
           const params = { page: pageNumber, page_size: 20 };
           if (this.keyword) params.search = this.keyword;
+          if (this.dateRange.du) params.created_at__gte = this.dateRange.du;
+          if (this.dateRange.au) params.created_at__lte = this.dateRange.au;
 
           suppliesService.getSupplies(this.shopId, params)
             .then((res) => {
@@ -424,9 +426,12 @@ export default {
               const results = data?.results ?? [];
               const paginated = !!data?.results;
 
-              if (page === 1) {
+              if (pageNumber === 1) {
                 this.supplies = results;
                 this.$store.state.supplies = data;
+                if (results.length === 0 && (this.dateRange.du || this.dateRange.au || this.keyword)) {
+                  this.showTostMsg('Aucun achat correspondant à vos critères.', 'tertiary', 5000);
+                }
               } else {
                 this.supplies = [...this.supplies, ...results];
                 // Mise à jour partielle du store si nécessaire
@@ -438,21 +443,21 @@ export default {
               this.totals = data?.totals ?? this.totals;
               this.totals_quantity = data?.totals_quantity ?? this.totals_quantity;
               this.hasNextPage = paginated && !!data?.next;
-              this.currentPage = page;
+              this.currentPage = pageNumber;
               this.loading = false;
             })
             .catch((err) => {
               this.loading = false;
               // Un 404 sur une page > 1 signifie simplement qu'on est arrivé au bout
               if (err?.response?.status !== 404 || pageNumber === 1) {
-                this.errorOrRefresh(err, () => this.fetchSupplies(pageNumber));
+                this.errorOrRefresh(err, () => this.fetchSupplies(pageNumber, isSearch));
               }
               this.hasNextPage = false;
             });
         },
         async loadMoreSupplies(ev) {
           if (this.hasNextPage && !this.loading) {
-            await this.fetchSupplies(this.currentPage + 1);
+            await this.fetchSupplies(this.currentPage + 1, true);
           }
           ev.target.complete();
         },
@@ -464,7 +469,7 @@ export default {
           if (!k) return list; // Si la recherche est vide ou espace, on affiche tout
           return (list || []).filter((x) => JSON.stringify(x).toLowerCase().includes(k));
         },
-       performDeepSearch(du, au) {
+               performDeepSearch(du, au) { this.dateRange = { du: du || '', au: au || '' }; this.fetchSupplies(1, true); return;
          this.loading = true;
          this.dateRange = { du: du || '', au: au || '' };
          suppliesService.getSupplies(this.shopId, { created_at__gte: du, created_at__lte: au })

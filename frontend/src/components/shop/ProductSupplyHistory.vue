@@ -27,7 +27,7 @@
       <!-- Résumé du produit -->
       <div class="product-summary">
         <ion-thumbnail class="summary-thumb">
-          <ion-img :src="productImageUrl" @ionError="(e) => e.target.src = '/placeholder.png'"></ion-img>
+          <ion-img :src="productImage(productProp)" @ionError="(e) => e.target.src = '/placeholder.png'"></ion-img>
         </ion-thumbnail>
         <div class="summary-info">
           <h2>{{ productName }}</h2>
@@ -129,6 +129,7 @@ import {
   cartOutline
 } from 'ionicons/icons';
 import { productsService } from '../../services/api';
+import globalMixins from '../../composables/mixins';
 
 /**
  * Composant ProductSupplyHistory
@@ -136,6 +137,7 @@ import { productsService } from '../../services/api';
  * - Utilise l'endpoint GET /shops/products/{id}/stock/ qui retourne TOUS les achats sans filtrage de dates.
  */
 export default {
+  mixins: [globalMixins],
   name: 'ProductSupplyHistory',
   components: {
     IonPage,
@@ -186,15 +188,7 @@ export default {
     productId() {
       return this.productProp?.id ?? null;
     },
-    productImageUrl() {
-      if (!this.productProp) return '/placeholder.png';
-      const img = this.productProp?.product?.image
-        ?? this.productProp?.image
-        ?? null;
-      if (!img) return '/placeholder.png';
-      if (typeof img === 'string' && (img.startsWith('http') || img.startsWith('data:'))) return img;
-      return img;
-    },
+
     categoryLabel() {
       if (!this.productProp) return '';
       const bp = this.productProp?.product;

@@ -39,38 +39,37 @@
       style="--background: #f1f5f9; --border-radius: 12px; margin-top: 10px;"
     ></ion-searchbar>
 
-   <ion-list-header v-if="filteredControlledProducts.length>0"> Déjà controlés </ion-list-header>
+   <ion-list-header v-if="filteredControlledProducts.length>0">
+     Déjà contrôlés ({{ filteredControlledProducts.length }})
+   </ion-list-header>
  
-     <div class="scroll-container ion-margin" v-if="filteredControlledProducts.length>0" >
-       <ion-card color="light" v-for="product in filteredControlledProducts" :key="product.id">
-         <ion-badge
-           color="light"
-           style="position: absolute;top: 0;right: 0;"
-         >
-         <ion-icon size="large" color="success" :icon="checkmarkCircle"></ion-icon>
-         </ion-badge>
-         <ion-badge
-           color="light"
-           style="position: absolute; top: 0; left: 0; padding: 0; border-radius: 50%;"
-           @click.stop="confirmCancelControl(product)"
-         >
-           <ion-icon size="large" color="danger" :icon="closeCircle"></ion-icon>
-         </ion-badge>
-          <!-- Bouton historique des achats -->
-          <ion-badge
-            color="light"
-            style="position: absolute; bottom: 0; right: 0; padding: 0; border-radius: 50%;"
-            @click.stop="openSupplyHistory(product)"
-          >
-            <ion-icon size="large" color="primary" :icon="receiptOutline"></ion-icon>
-          </ion-badge>
-         <img :src="product.product.image" />
-          <ion-label>
-            {{product.name}}
-            <p class="art-cat">{{ getCategoryLabel(product) }}</p>
-          </ion-label>
-       </ion-card>
+   <div class="scroll-container ion-margin" v-if="filteredControlledProducts.length>0">
+     <div class="controlled-card" v-for="product in filteredControlledProducts" :key="product.id">
+       <!-- Badge Check (En haut à droite) -->
+       <div class="card-action-badge top-right success">
+         <ion-icon color="success" :icon="checkmarkCircle"></ion-icon>
+       </div>
+       <!-- Badge Cancel (En haut à gauche) -->
+       <div class="card-action-badge top-left danger" @click.stop="confirmCancelControl(product)">
+         <ion-icon color="danger" :icon="closeCircle"></ion-icon>
+       </div>
+       <!-- Badge Historique (En bas à droite) -->
+       <div class="card-action-badge bottom-right primary" @click.stop="openSupplyHistory(product)">
+         <ion-icon color="primary" :icon="receiptOutline"></ion-icon>
+       </div>
+       
+       <!-- Image Container -->
+       <div class="controlled-card-img-container">
+         <ion-img :src="productImage(product)" @ionError="(e) => e.target.src = '/placeholder.png'"></ion-img>
+       </div>
+       
+       <!-- Infos Produit -->
+       <div class="controlled-card-info">
+         <div class="controlled-card-name">{{ product.name }}</div>
+         <p class="controlled-card-cat">{{ getCategoryLabel(product) }}</p>
+       </div>
      </div>
+   </div>
 
     <ion-list-header> Non controlés ({{ filteredUnControlledProducts.length }}) </ion-list-header>
 
@@ -81,7 +80,7 @@
         @click="performControlProduct(product)"
         >
         <ion-thumbnail slot="start">
-          <img :src="product.product.image" />
+          <ion-img :src="productImage(product)" @ionError="(e) => e.target.src = '/placeholder.png'"></ion-img>
         </ion-thumbnail>
 
         <ion-label>
@@ -141,7 +140,8 @@
    IonFabButton,
    IonList,
    IonPopover,
-   IonSearchbar
+   IonSearchbar,
+   IonImg
    
  } from '@ionic/vue';
  
@@ -196,7 +196,8 @@ export default {
      IonFabButton,
      IonList,
      IonPopover,
-     IonSearchbar
+     IonSearchbar,
+     IonImg
    },
    data(){
      return{
@@ -228,33 +229,30 @@ export default {
         shopId(){
             return this.shop ? this.shop.id : null
         },
-         filteredControlledProducts() {
-             if (!this.searchTerm) return this.controlledProducts;
-             const search = this.searchTerm.toLowerCase();
-             return this.controlledProducts.filter(p => 
-                 p.name.toLowerCase().includes(search) || 
-                 (p.product && p.product.name.toLowerCase().includes(search))
-             );
-         },
-         filteredUnControlledProducts() {
-             if (!this.searchTerm) return this.unControlledProducts;
-             const search = this.searchTerm.toLowerCase();
-             return this.unControlledProducts.filter(p => 
-                 p.name.toLowerCase().includes(search) || 
-                 (p.product && p.product.name.toLowerCase().includes(search))
-             );
-         }
+          filteredControlledProducts() {
+              if (!this.searchTerm) return this.controlledProducts;
+              const search = this.searchTerm.toLowerCase();
+              return this.controlledProducts.filter(p => 
+                  (p.name || '').toLowerCase().includes(search) || 
+                  (p.product && (p.product.name || '').toLowerCase().includes(search))
+              );
+          },
+          filteredUnControlledProducts() {
+              if (!this.searchTerm) return this.unControlledProducts;
+              const search = this.searchTerm.toLowerCase();
+              return this.unControlledProducts.filter(p => 
+                  (p.name || '').toLowerCase().includes(search) || 
+                  (p.product && (p.product.name || '').toLowerCase().includes(search))
+              );
+          }
     },
     beforeMount(){
         this.$store.state.shop = this.getShopFromLocalStorage()
         this.shop = this.$store.state.shop
         this.checkCurrentShop()
-        if(this.$store.state.products.length<=0)
-            this.fetchProducts()
-        else{
-          this.controlledProducts = this.$store.state.products.filter(x=>x.controlled)
-          this.unControlledProducts = this.$store.state.products.filter(x=>x.controlled==false && x.quantity>0)
-        }
+    },
+    ionViewWillEnter(){
+        this.fetchProducts();
         this.fetchCategories();
     },
 
@@ -464,21 +462,113 @@ ion-buttons {
 }
 
 .scroll-container {
- display: flex;
- overflow-x: auto;
- scroll-snap-type: x mandatory; /* Ensures smooth scrolling */
- gap: 10px; /* Adds space between images */
- padding: 10px;
- height:300px;
- white-space: nowrap;
+  display: flex;
+  overflow-x: auto;
+  gap: 15px;
+  padding: 10px 5px;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
 }
 
-.scroll-container ion-card {
- flex: 0 0 auto; /* Prevents shrinking */
- width: 250px; /* Adjust width as needed */
- scroll-snap-align: start; /* Snaps cards into place */
- height:300px;
- width:150px;
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.controlled-card {
+  position: relative;
+  flex: 0 0 135px;
+  width: 135px;
+  height: 185px;
+  scroll-snap-align: start;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.controlled-card-img-container {
+  width: 75px;
+  height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.controlled-card-img-container ion-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.controlled-card-info {
+  width: 100%;
+  text-align: center;
+}
+
+.controlled-card-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.controlled-card-cat {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 2px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-action-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  z-index: 10;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.card-action-badge ion-icon {
+  font-size: 22px;
+}
+
+.card-action-badge.top-right {
+  top: -4px;
+  right: -4px;
+}
+
+.card-action-badge.top-left {
+  top: -4px;
+  left: -4px;
+}
+
+.card-action-badge.bottom-right {
+  bottom: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-action-badge.bottom-right ion-icon {
+  font-size: 16px;
 }
 
 </style>
