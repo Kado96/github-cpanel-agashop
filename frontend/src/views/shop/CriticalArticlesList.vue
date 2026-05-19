@@ -44,6 +44,8 @@
         <!-- The original instruction had ion-searchbar tags around ion-select attributes, which is syntactically incorrect. -->
         <!-- This is a corrected interpretation of the user's intent to add an ion-select. -->
         <ion-select
+          id="critical-articles-category"
+          name="critical-articles-category"
           v-model="filterCategoryId"
           placeholder="Filtre par catégorie"
           interface="popover"
@@ -67,14 +69,14 @@
             <span class="picker-label">Du :</span>
             <ion-datetime-button datetime="critical-start-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="critical-start-date" presentation="date" v-model="startDate" @ionChange="fetchProducts" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="critical-start-date" name="critical-start-date" presentation="date" v-model="startDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
           <div class="date-picker-item">
             <span class="picker-label">Au :</span>
             <ion-datetime-button datetime="critical-end-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="critical-end-date" presentation="date" v-model="endDate" @ionChange="fetchProducts" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="critical-end-date" name="critical-end-date" presentation="date" v-model="endDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
         </div>
@@ -191,6 +193,20 @@ export default {
     IonImg
   },
   data() {
+    const getLocalTodayStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    const getLocalFirstDayOfMonthStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}-01`;
+    };
+
     return {
       arrowBackOutline,
       refreshCircleOutline,
@@ -201,11 +217,23 @@ export default {
       categories: [],
       keyword: '',
       filterCategoryId: null, // Added for the new ion-select
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
+      startDate: getLocalFirstDayOfMonthStr(),
+      endDate: getLocalTodayStr(),
       loading: false,
       shop: this.$store.state.shop
     };
+  },
+  watch: {
+    startDate(newVal) {
+      if (newVal) {
+        this.fetchProducts();
+      }
+    },
+    endDate(newVal) {
+      if (newVal) {
+        this.fetchProducts();
+      }
+    }
   },
   computed: {
     shopId() {
@@ -260,6 +288,20 @@ export default {
     this.fetchCategories();
   },
   methods: {
+    onStartDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.startDate = val.split('T')[0];
+        this.fetchProducts();
+      }
+    },
+    onEndDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.endDate = val.split('T')[0];
+        this.fetchProducts();
+      }
+    },
     removeFocus() {
       // Un petit délai permet à Ionic de finir ses transitions d'overlay
       setTimeout(() => {
@@ -276,9 +318,11 @@ export default {
       if (!this.shopId) return;
       this.loading = true;
       try {
+        const cleanStart = this.startDate ? String(this.startDate).split('T')[0] : '';
+        const cleanEnd = this.endDate ? String(this.endDate).split('T')[0] : '';
         const res = await productsService.getProducts(this.shopId, {
-          created_at__gte: this.startDate,
-          created_at__lte: this.endDate,
+          created_at__gte: cleanStart,
+          created_at__lte: cleanEnd,
           no_pagination: 'true'
         });
         this.products = res.data.results || res.data || [];

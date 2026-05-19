@@ -68,14 +68,14 @@
             <span class="picker-label">Du :</span>
             <ion-datetime-button datetime="active-start-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="active-start-date" presentation="date" v-model="startDate" @ionChange="initLoading" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="active-start-date" name="active-start-date" presentation="date" v-model="startDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
           <div class="date-picker-item">
             <span class="picker-label">Au :</span>
             <ion-datetime-button datetime="active-end-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="active-end-date" presentation="date" v-model="endDate" @ionChange="initLoading" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="active-end-date" name="active-end-date" presentation="date" v-model="endDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
         </div>
@@ -202,6 +202,20 @@ export default {
     IonImg
   },
   data() {
+    const getLocalTodayStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    const getLocalFirstDayOfMonthStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}-01`;
+    };
+
     return {
       arrowBackOutline,
       refreshCircleOutline,
@@ -211,8 +225,8 @@ export default {
       categories: [],
       filterCategoryId: null,
       keyword: '',
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
+      startDate: getLocalFirstDayOfMonthStr(),
+      endDate: getLocalTodayStr(),
       loading: false,
       shop: this.$store.state.shop,
       currentPage: 1,
@@ -270,9 +284,33 @@ export default {
     },
     filterCategoryId() {
       this.initLoading();
+    },
+    startDate(newVal) {
+      if (newVal) {
+        this.initLoading();
+      }
+    },
+    endDate(newVal) {
+      if (newVal) {
+        this.initLoading();
+      }
     }
   },
   methods: {
+    onStartDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.startDate = val.split('T')[0];
+        this.initLoading();
+      }
+    },
+    onEndDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.endDate = val.split('T')[0];
+        this.initLoading();
+      }
+    },
     removeFocus() {
       // Un petit délai permet à Ionic de finir ses transitions d'overlay
       setTimeout(() => {
@@ -311,10 +349,10 @@ export default {
         }
 
         if (this.startDate) {
-          params['created_at__gte'] = this.startDate;
+          params['created_at__gte'] = String(this.startDate).split('T')[0];
         }
         if (this.endDate) {
-          params['created_at__lte'] = this.endDate;
+          params['created_at__lte'] = String(this.endDate).split('T')[0];
         }
 
         const res = await productsService.getProducts(this.shopId, params);

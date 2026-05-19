@@ -33,8 +33,14 @@
       <!-- 1. Selection Mode Area (DESIGN ORIGINAL RESTAURÉ) -->
       <div class="selection-area">
         <div class="selection-row">
+          <ion-button id="sales-select-year-mode" name="sales-select-year-mode" fill="clear" class="mode-option-btn" @click="handleYearClick">
+            <div :class="['radio-circle', { checked: selectionMode === 'year' }]">
+              <div class="inner-dot" v-if="selectionMode === 'year'"></div>
+            </div>
+            <span class="mode-label">Sélectionner une année</span>
+          </ion-button>
           
-          <ion-button id="select-date-mode" fill="clear" class="mode-option-btn" @click="handleDateClick">
+          <ion-button id="sales-select-date-mode" name="sales-select-date-mode" fill="clear" class="mode-option-btn" @click="handleDateClick">
             <div :class="['radio-circle', { checked: selectionMode === 'date' }]">
               <div class="inner-dot" v-if="selectionMode === 'date'"></div>
             </div>
@@ -48,14 +54,14 @@
             <span class="picker-label">Du :</span>
             <ion-datetime-button datetime="sales-start-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="sales-start-date" presentation="date" v-model="startDate" @ionChange="fetchSales" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="sales-start-date" name="sales-start-date" presentation="date" v-model="startDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
           <div class="date-picker-item">
             <span class="picker-label">Au :</span>
             <ion-datetime-button datetime="sales-end-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="sales-end-date" presentation="date" v-model="endDate" @ionChange="fetchSales" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="sales-end-date" name="sales-end-date" presentation="date" v-model="endDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
         </div>
@@ -190,6 +196,20 @@ export default {
     IonBackButton
   },
   data() {
+    const getLocalTodayStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    const getLocalFirstDayOfMonthStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}-01`;
+    };
+
     return {
       arrowBackOutline,
       chevronBack,
@@ -199,8 +219,8 @@ export default {
       downloadOutline,
       selectionMode: 'year',
       currentDate: new Date(),
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
+      startDate: getLocalFirstDayOfMonthStr(),
+      endDate: getLocalTodayStr(),
       products: [],
       categories: [],
       keyword: '',
@@ -212,6 +232,18 @@ export default {
       years: Array.from({ length: 11 }, (_, i) => 2026 + i),
       shop: this.$store.state.shop
     };
+  },
+  watch: {
+    startDate(newVal) {
+      if (newVal) {
+        this.fetchSales();
+      }
+    },
+    endDate(newVal) {
+      if (newVal) {
+        this.fetchSales();
+      }
+    }
   },
   computed: {
     shopId() {
@@ -302,7 +334,21 @@ export default {
         const datePart = val.split('T')[0];
         this.currentDate = new Date(datePart + 'T00:00:00');
         this.showInlineCalendar = false;
-        this.fetchSales(true);
+        this.fetchSales();
+      }
+    },
+    onStartDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.startDate = val.split('T')[0];
+        this.fetchSales();
+      }
+    },
+    onEndDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.endDate = val.split('T')[0];
+        this.fetchSales();
       }
     },
     selectYear(year) {
@@ -333,8 +379,8 @@ export default {
 
       let firstDay, lastDay;
       if (this.selectionMode === 'date') {
-        firstDay = this.startDate;
-        lastDay = this.endDate;
+        firstDay = this.startDate ? String(this.startDate).split('T')[0] : '';
+        lastDay = this.endDate ? String(this.endDate).split('T')[0] : '';
       } else {
         const y = this.currentDate.getFullYear();
         const m = this.currentDate.getMonth();

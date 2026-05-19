@@ -33,14 +33,14 @@
       <!-- 1. Selection Mode Area -->
       <div class="selection-area">
         <div class="selection-row">
-          <ion-button fill="clear" class="mode-option-btn" @click="handleYearClick">
+          <ion-button id="profits-select-year-mode" name="profits-select-year-mode" fill="clear" class="mode-option-btn" @click="handleYearClick">
             <div :class="['radio-circle', { checked: selectionMode === 'year' }]">
               <div class="inner-dot" v-if="selectionMode === 'year'"></div>
             </div>
             <span class="mode-label">Sélectionner une année</span>
           </ion-button>
           
-          <ion-button fill="clear" class="mode-option-btn" @click="handleDateClick">
+          <ion-button id="profits-select-date-mode" name="profits-select-date-mode" fill="clear" class="mode-option-btn" @click="handleDateClick">
             <div :class="['radio-circle', { checked: selectionMode === 'date' }]">
               <div class="inner-dot" v-if="selectionMode === 'date'"></div>
             </div>
@@ -54,14 +54,14 @@
             <span class="picker-label">Du :</span>
             <ion-datetime-button datetime="profits-start-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="profits-start-date" presentation="date" v-model="startDate" @ionChange="fetchData" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="profits-start-date" name="profits-start-date" presentation="date" v-model="startDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
           <div class="date-picker-item">
             <span class="picker-label">Au :</span>
             <ion-datetime-button datetime="profits-end-date"></ion-datetime-button>
             <ion-modal :keep-contents-mounted="true" @didDismiss="removeFocus">
-              <ion-datetime id="profits-end-date" presentation="date" v-model="endDate" @ionChange="fetchData" locale="fr-FR"></ion-datetime>
+              <ion-datetime id="profits-end-date" name="profits-end-date" presentation="date" v-model="endDate" locale="fr-FR"></ion-datetime>
             </ion-modal>
           </div>
         </div>
@@ -212,6 +212,20 @@ export default {
     IonModal
   },
   data() {
+    const getLocalTodayStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    const getLocalFirstDayOfMonthStr = () => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}-01`;
+    };
+
     return {
       arrowBackOutline,
       chevronBack,
@@ -220,8 +234,8 @@ export default {
       downloadOutline,
       selectionMode: 'year',
       currentDate: new Date(),
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
+      startDate: getLocalFirstDayOfMonthStr(),
+      endDate: getLocalTodayStr(),
       totalSales: 0,
       totalExpenses: 0,
       totalSalesProfit: 0,
@@ -231,6 +245,18 @@ export default {
       years: Array.from({ length: 11 }, (_, i) => 2026 + i),
       shop: this.$store.state.shop
     };
+  },
+  watch: {
+    startDate(newVal) {
+      if (newVal) {
+        this.fetchData();
+      }
+    },
+    endDate(newVal) {
+      if (newVal) {
+        this.fetchData();
+      }
+    }
   },
   computed: {
     shopId() {
@@ -317,7 +343,21 @@ export default {
         const datePart = val.split('T')[0];
         this.currentDate = new Date(datePart + 'T00:00:00');
         this.showInlineCalendar = false;
-        this.fetchData(true);
+        this.fetchData();
+      }
+    },
+    onStartDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.startDate = val.split('T')[0];
+        this.fetchData();
+      }
+    },
+    onEndDateChange(ev) {
+      const val = ev.detail.value;
+      if (val) {
+        this.endDate = val.split('T')[0];
+        this.fetchData();
       }
     },
     selectYear(year) {
@@ -347,8 +387,8 @@ export default {
 
       let firstDay, lastDay;
       if (this.selectionMode === 'date') {
-        firstDay = this.startDate;
-        lastDay = this.endDate;
+        firstDay = this.startDate ? String(this.startDate).split('T')[0] : '';
+        lastDay = this.endDate ? String(this.endDate).split('T')[0] : '';
       } else {
         const y = this.currentDate.getFullYear();
         const m = this.currentDate.getMonth();
