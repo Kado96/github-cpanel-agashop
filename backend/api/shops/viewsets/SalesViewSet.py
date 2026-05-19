@@ -62,13 +62,20 @@ class SalesViewSet(viewsets.ModelViewSet):
 			response.data["totals"] = totals
 			return response
 
-		response = super().list(request, args, kwargs)
+		serializer = self.get_serializer(
+			queryset,
+			many=True,
+			context={'request': request}
+		)
 		pvt = queryset.aggregate(sum=models.Sum('amount'))['sum']
 		benefice = getBenefice(queryset)
-		totals = {"pvt":pvt,"benefice":benefice}
+		totals = {"pvt": pvt or 0, "benefice": benefice or 0}
 
-		response.data["totals"] = totals
-		return response
+		from rest_framework.response import Response
+		return Response({
+			'results': serializer.data,
+			'totals': totals
+		})
 
 	@transaction.atomic()
 	def perform_create(self, serializer):
