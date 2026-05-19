@@ -296,8 +296,7 @@ export default {
       this.loading = true;
       try {
         const params = {
-          page,
-          page_size: 20
+          no_pagination: 'true'
         };
 
         if (this.keyword) {

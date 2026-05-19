@@ -371,7 +371,7 @@ export default {
           expense_date__lte: lastDay,
           created_at__gte: firstDay,
           created_at__lte: lastDay,
-          page_size: 1000
+          no_pagination: 'true'
         });
         const rawExpenses = res.data.results || res.data || [];
         // Sécurité : filtrage local si le backend ignore les paramètres de date

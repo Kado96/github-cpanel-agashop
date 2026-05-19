@@ -361,19 +361,19 @@ export default {
           salesService.getSales(this.shopId, { 
             created_at__gte: firstDay, 
             created_at__lte: lastDay,
-            page_size: 1000
+            no_pagination: 'true'
           }),
           expensesService.getExpenses(this.shopId, {
             expense_date__gte: firstDay,
             expense_date__lte: lastDay,
             created_at__gte: firstDay, 
             created_at__lte: lastDay,
-            page_size: 1000
+            no_pagination: 'true'
           }),
           suppliesService.getSupplies(this.shopId, {
             created_at__gte: firstDay,
             created_at__lte: lastDay,
-            page_size: 1000
+            no_pagination: 'true'
           })
         ]);
 

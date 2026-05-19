@@ -346,7 +346,7 @@ export default {
         const res = await salesService.getSales(this.shopId, { 
           created_at__gte: firstDay, 
           created_at__lte: lastDay,
-          page_size: 1000
+          no_pagination: 'true'
         });
         this.sales = res.data.results || res.data || [];
         this.monthlyTotal = this.sales.reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0);

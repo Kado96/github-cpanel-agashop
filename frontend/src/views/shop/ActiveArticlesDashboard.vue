@@ -221,7 +221,7 @@ export default {
       this.loading = true;
 
       try {
-        const res = await productsService.getProducts(this.shopId, { page_size: 5000 });
+        const res = await productsService.getProducts(this.shopId, { no_pagination: 'true' });
         const data = res.data;
         const products = data.results || data || [];
         const totals = data.totals || { market_value: 0, cost_value: 0, quantity: 0 };

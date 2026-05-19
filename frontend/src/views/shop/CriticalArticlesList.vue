@@ -279,7 +279,7 @@ export default {
         const res = await productsService.getProducts(this.shopId, {
           created_at__gte: this.startDate,
           created_at__lte: this.endDate,
-          page_size: 5000
+          no_pagination: 'true'
         });
         this.products = res.data.results || res.data || [];
       } catch (err) {

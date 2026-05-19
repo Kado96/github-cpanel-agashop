@@ -140,3 +140,26 @@ for d in dupes:
 
 print('Nettoyage terminé !')
 "
+
+
+
+
+
+MISES À JOUR BACKEND & BASE DE DONNÉES (Sur le serveur - cPanel Terminal)
+Connectez-vous à votre terminal cPanel et placez-vous dans le dossier de l'application active :
+
+bash
+cd /home/agashopb/api
+Récupérez le nouveau code depuis GitHub :
+
+bash
+git fetch origin main
+git reset --hard origin/main
+Lancez notre script de synchronisation automatisé (il copiera le backend propre, lancera les migrations de base de données Django et optimisera les doublons d'images) :
+
+bash
+python3 deploy_updates.py
+Redémarrez l'application Python :
+
+Allez sur votre interface cPanel > Setup Python App.
+Cliquez sur le bouton RESTART correspondant à l'application.

@@ -42,7 +42,12 @@ class SalesViewSet(viewsets.ModelViewSet):
 				
 			queryset = queryset.order_by('-id')
 
-		page = self.paginate_queryset(queryset)
+		no_pagination = request.query_params.get('no_pagination') == 'true'
+		if no_pagination:
+			page = None
+		else:
+			page = self.paginate_queryset(queryset)
+
 		if page is not None:
 			serializer = self.get_serializer(
 				page,

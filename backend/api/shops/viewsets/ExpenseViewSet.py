@@ -39,3 +39,21 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         if hasattr(self.request.user, 'account'):
             account = self.request.user.account
         serializer.save(account=account)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        no_pagination = request.query_params.get('no_pagination') == 'true'
+        if no_pagination:
+            page = None
+        else:
+            page = self.paginate_queryset(queryset)
+            
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = self.get_serializer(queryset, many=True)
+        from rest_framework.response import Response
+        return Response({
+            'results': serializer.data
+        })
