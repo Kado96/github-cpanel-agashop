@@ -47,3 +47,39 @@ class UserViewSet(
 				return queryset.filter(id=user.id)
 		
 		return queryset
+
+	@action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+	def change_password(self, request):
+		"""
+		Permet à un utilisateur connecté de modifier son propre mot de passe.
+		"""
+		user = request.user
+		old_password = request.data.get('old_password')
+		new_password = request.data.get('new_password')
+
+		if not new_password or len(str(new_password).strip()) < 4:
+			return Response({'error': 'Le nouveau mot de passe doit contenir au moins 4 caractères.'}, status=status.HTTP_400_BAD_REQUEST)
+
+		if old_password:
+			if not user.check_password(old_password):
+				return Response({'error': 'L\'ancien mot de passe est incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+		user.set_password(new_password.strip())
+		user.save()
+		return Response({'status': 'Mot de passe modifié avec succès.'})
+
+	@action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+	def reset_user_password(self, request, pk=None):
+		"""
+		Permet à un administrateur ou agent de réinitialiser le mot de passe d'un utilisateur qu'il gère.
+		"""
+		target_user = self.get_object()
+		new_password = request.data.get('new_password')
+
+		if not new_password or len(str(new_password).strip()) < 4:
+			return Response({'error': 'Le nouveau mot de passe doit contenir au moins 4 caractères.'}, status=status.HTTP_400_BAD_REQUEST)
+
+		target_user.set_password(new_password.strip())
+		target_user.save()
+		return Response({'status': f'Le mot de passe de {target_user.username} a été mis à jour avec succès.'})
+
