@@ -26,25 +26,29 @@ class BasicProductSerializer(serializers.ModelSerializer):
 		request = self.context.get('request')
 
 		# 1. Vérification des métadonnées de stockage centralisé (FileMetadata)
-		from api.shops.models import FileMetadata
-		from django.conf import settings
+		try:
+			from api.shops.models import FileMetadata
+			from django.conf import settings
 
-		storage_meta = FileMetadata.objects.filter(product_id=str(obj.id)).first()
-		if storage_meta and storage_meta.external_file_id:
-			ext_id = storage_meta.external_file_id
-			if ext_id.startswith('http://') or ext_id.startswith('https://'):
-				return ext_id
-			
-			provider = getattr(settings, 'STORAGE_PROVIDER', 'LOCAL')
-			if provider == 'SUPABASE_S3':
-				endpoint = getattr(settings, 'SUPABASE_S3_ENDPOINT_URL', '')
-				bucket = getattr(settings, 'SUPABASE_S3_BUCKET_NAME', 'media')
-				if endpoint and '.supabase.co' in endpoint:
-					project_ref = endpoint.split('.')[0].replace('https://', '')
-					return f"https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{ext_id}"
-				return f"{endpoint}/{bucket}/{ext_id}"
-			elif provider == 'GOOGLE_DRIVE':
-				return f"https://drive.google.com/uc?export=view&id={ext_id}"
+			storage_meta = FileMetadata.objects.filter(product_id=str(obj.id)).first()
+			if storage_meta and storage_meta.external_file_id:
+				ext_id = storage_meta.external_file_id
+				if ext_id.startswith('http://') or ext_id.startswith('https://'):
+					return ext_id
+				
+				provider = getattr(settings, 'STORAGE_PROVIDER', 'LOCAL')
+				if provider == 'SUPABASE_S3':
+					endpoint = getattr(settings, 'SUPABASE_S3_ENDPOINT_URL', '')
+					bucket = getattr(settings, 'SUPABASE_S3_BUCKET_NAME', 'media')
+					if endpoint and '.supabase.co' in endpoint:
+						project_ref = endpoint.split('.')[0].replace('https://', '')
+						return f"https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{ext_id}"
+					return f"{endpoint}/{bucket}/{ext_id}"
+				elif provider == 'GOOGLE_DRIVE':
+					return f"https://drive.google.com/uc?export=view&id={ext_id}"
+		except Exception as e:
+			pass
+
 
 		# 2. Priorité au système de média local
 		if obj.media and obj.media.file:
