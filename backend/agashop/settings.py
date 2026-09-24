@@ -96,17 +96,39 @@ WSGI_APPLICATION = 'agashop.wsgi.application'
 
 
 # Database
-# En local, on utilise SQLite. En production, on peut surcharger via DATABASE_URL ou garder SQLite si cPanel le permet.
-DATABASES = {
-    'default': config(
-        'DATABASE_URL',
-        default={
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        },
-        cast=lambda v: {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / v} if isinstance(v, str) and v.endswith('.sqlite3') else v
-    )
-}
+# En local : SQLite par défaut. En production (Render/Supabase) : surcharge via DATABASE_URL ou paramètres POSTGRES
+import dj_database_url
+
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DB_HOST = config('DB_HOST', default=None)
+    if DB_HOST:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DB_NAME', default='postgres'),
+                'USER': config('DB_USER', default='postgres'),
+                'PASSWORD': config('DB_PASSWORD', default=''),
+                'HOST': DB_HOST,
+                'PORT': config('DB_PORT', default='5432'),
+            }
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 
 # Password validation
@@ -170,7 +192,7 @@ SIMPLE_JWT = {
 
 
 
-    # ==========================
+# ==========================
 # EMAIL CONFIGURATION (CPANEL - agashop.bi)
 # ==========================
 
@@ -188,4 +210,18 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = f"Agashop <{EMAIL_HOST_USER}>"
 
 EMAIL_TIMEOUT = 20
+    
+# ==========================
+# STORAGE SDK CONFIGURATION (SUPABASE S3 / GOOGLE DRIVE / LOCAL)
+# ==========================
+STORAGE_PROVIDER = config('STORAGE_PROVIDER', default='LOCAL')
+LOCAL_STORAGE_BASE_PATH = config('LOCAL_STORAGE_BASE_PATH', default=os.path.join(MEDIA_ROOT, 'sdk_storage'))
+GOOGLE_APPLICATION_CREDENTIALS = config('GOOGLE_APPLICATION_CREDENTIALS', default='')
+GOOGLE_DRIVE_SHARED_DRIVE_ID = config('GOOGLE_DRIVE_SHARED_DRIVE_ID', default='')
+
+SUPABASE_S3_ENDPOINT_URL = config('SUPABASE_S3_ENDPOINT_URL', default='https://plihtjkucujoeewlzptb.storage.supabase.co/storage/v1/s3')
+SUPABASE_S3_ACCESS_KEY_ID = config('SUPABASE_S3_ACCESS_KEY_ID', default='')
+SUPABASE_S3_SECRET_ACCESS_KEY = config('SUPABASE_S3_SECRET_ACCESS_KEY', default='')
+SUPABASE_S3_BUCKET_NAME = config('SUPABASE_S3_BUCKET_NAME', default='media')
+SUPABASE_S3_REGION_NAME = config('SUPABASE_S3_REGION_NAME', default='eu-west-1')
 

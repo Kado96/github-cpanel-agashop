@@ -25,12 +25,26 @@ class BasicProductSerializer(serializers.ModelSerializer):
 	def get_image_url(self, obj):
 		request = self.context.get('request')
 
-		# 1. Vérification si l'image est hébergée sur Google Drive via le SDK
+		# 1. Vérification des métadonnées de stockage centralisé (FileMetadata)
 		from api.shops.models import FileMetadata
-		gdrive_meta = FileMetadata.objects.filter(product_id=str(obj.id)).first()
-		if gdrive_meta and gdrive_meta.external_file_id:
-			# Lien direct d'affichage Google Drive sans passer par le serveur local
-			return f"https://drive.google.com/uc?export=view&id={gdrive_meta.external_file_id}"
+		from django.conf import settings
+
+		storage_meta = FileMetadata.objects.filter(product_id=str(obj.id)).first()
+		if storage_meta and storage_meta.external_file_id:
+			ext_id = storage_meta.external_file_id
+			if ext_id.startswith('http://') or ext_id.startswith('https://'):
+				return ext_id
+			
+			provider = getattr(settings, 'STORAGE_PROVIDER', 'LOCAL')
+			if provider == 'SUPABASE_S3':
+				endpoint = getattr(settings, 'SUPABASE_S3_ENDPOINT_URL', '')
+				bucket = getattr(settings, 'SUPABASE_S3_BUCKET_NAME', 'media')
+				if endpoint and '.supabase.co' in endpoint:
+					project_ref = endpoint.split('.')[0].replace('https://', '')
+					return f"https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{ext_id}"
+				return f"{endpoint}/{bucket}/{ext_id}"
+			elif provider == 'GOOGLE_DRIVE':
+				return f"https://drive.google.com/uc?export=view&id={ext_id}"
 
 		# 2. Priorité au système de média local
 		if obj.media and obj.media.file:
@@ -44,6 +58,7 @@ class BasicProductSerializer(serializers.ModelSerializer):
 		if request:
 			return request.build_absolute_uri(url)
 		return url
+
 
 
 
