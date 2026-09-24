@@ -1,6 +1,10 @@
 RewriteEngine On
 RewriteBase /
 
+# Types MIME manquants sur certains hébergeurs (InfinityFree / Wuaze)
+AddType application/manifest+json .webmanifest
+AddType application/json .webmanifest
+
 # Ne pas réécrire si le fichier ou dossier existe vraiment
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
