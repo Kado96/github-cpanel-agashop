@@ -1,6 +1,13 @@
 from django.db import models
 from django.utils import timezone
 from api.accounts.models import Account, User
+try:
+    from jarvis_storage.models.django_model import AbstractFileMetadata
+except ImportError:
+    # Dummy classe en attendant que le dossier soit bien lié
+    class AbstractFileMetadata(models.Model):
+        class Meta:
+            abstract = True
 
 
 class Shop(models.Model):
@@ -294,3 +301,77 @@ class History(models.Model):
 
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+
+class FileMetadata(AbstractFileMetadata):
+    shop_id = models.CharField(max_length=100, db_index=True)
+    product_id = models.CharField(max_length=100, null=True, blank=True)
+    external_file_id = models.CharField(max_length=255, null=True, blank=True)
+    thumbnail_file_id = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=50, default='UPLOADED')
+    
+    class Meta:
+        db_table = 'file_metadata'
+        indexes = [
+            models.Index(fields=['shop_id']),
+            models.Index(fields=['external_file_id']),
+        ]
+
+
+class ControlNotification(models.Model):
+    TYPE_CHOICES = [
+        ('CONTROL_DONE', 'Contrôle effectué'),
+        ('SUBSCRIPTION_ACTIVATED', 'Abonnement activé'),
+        ('SUBSCRIPTION_EXPIRED', 'Abonnement expiré'),
+        ('WARNING', 'Avertissement'),
+        ('SYSTEM', 'Système'),
+    ]
+
+    id = models.BigAutoField(primary_key=True)
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=30, choices=TYPE_CHOICES, default='SYSTEM')
+    title = models.CharField(max_length=150)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Notification de Contrôle"
+        verbose_name_plural = "Notifications de Contrôle"
+
+    def __str__(self):
+        return f"{self.shop.name} - {self.title} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"
+
+
+class LumiCashTransaction(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'En attente'),
+        ('SUCCESS', 'Succès'),
+        ('FAILED', 'Échoué'),
+        ('CANCELLED', 'Annulé'),
+    ]
+
+    id = models.BigAutoField(primary_key=True)
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='lumicash_transactions')
+    phone_number = models.CharField(max_length=20, help_text="Numéro Lumitel LumiCash (ex: +25761000000)")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Montant en BIF")
+    plan = models.CharField(max_length=20, choices=[
+        ('MONTHLY', 'Mensuel'),
+        ('3MONTHS', '3 Mois'),
+        ('6MONTHS', '6 Mois'),
+        ('YEARLY', 'Annuel'),
+    ])
+    reference_id = models.CharField(max_length=100, unique=True, db_index=True, help_text="Référence unique transaction")
+    lumicash_tx_id = models.CharField(max_length=100, null=True, blank=True, help_text="ID de transaction retourné par LumiCash")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Transaction LumiCash"
+        verbose_name_plural = "Transactions LumiCash"
+
+    def __str__(self):
+        return f"{self.shop.name} - {self.plan} ({self.amount} BIF) - {self.status}"
+

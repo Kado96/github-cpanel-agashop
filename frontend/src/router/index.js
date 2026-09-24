@@ -123,6 +123,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/agent/commissions',
+    name: 'agent-commissions',
+    component: () => import('../views/agent/AgentCommissions.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/supplies/actions',
     name: 'supply-product-actions',
     component: () => import('../views/shop/SupplyProductActions.vue'),

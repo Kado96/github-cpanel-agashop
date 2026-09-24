@@ -67,10 +67,13 @@ import {
   IonButton,
   IonCard,
   IonCardContent,
-  IonIcon
+  IonIcon,
+  alertController,
+  toastController
 } from '@ionic/vue';
 import { arrowBackOutline } from 'ionicons/icons';
 import { shopsService } from '@/services/api/shops';
+import { axiosService } from '@/plugins/axios';
 
 /**
  * Composant PaymentMethods
@@ -130,17 +133,84 @@ export default {
         day: 'numeric'
       });
     },
+    async initiateLumiCash(plan, amount) {
+      const alert = await alertController.create({
+        header: `Abonnement ${plan}`,
+        subHeader: `Montant : ${amount.toLocaleString('fr-FR')} BIF`,
+        message: 'Entrez votre numéro LumiCash Burundi pour effectuer le paiement :',
+        inputs: [
+          {
+            name: 'phone',
+            type: 'tel',
+            placeholder: 'Ex: 69000000 ou 79000000',
+            attributes: {
+              maxlength: 8
+            }
+          }
+        ],
+        buttons: [
+          {
+            text: 'Annuler',
+            role: 'cancel'
+          },
+          {
+            text: 'Payer avec LumiCash',
+            handler: async (data) => {
+              if (!data.phone || data.phone.length < 8) {
+                const toast = await toastController.create({
+                  message: 'Veuillez entrer un numéro LumiCash valide (8 chiffres).',
+                  duration: 3000,
+                  color: 'warning'
+                });
+                await toast.present();
+                return false;
+              }
+              await this.processPayment(plan, amount, data.phone);
+            }
+          }
+        ]
+      });
+      await alert.present();
+    },
+    async processPayment(plan, amount, phone) {
+      try {
+        const activeShop = JSON.parse(localStorage.getItem('activeShop'));
+        if (!activeShop) return;
+
+        const response = await axiosService.post('/shops/lumicash/initiate/', {
+          shop_id: activeShop.id,
+          amount: amount,
+          phone_number: phone,
+          plan: plan
+        });
+
+        const successAlert = await alertController.create({
+          header: 'Paiement Initié !',
+          message: response.data.message || `Une demande de confirmation LumiCash a été envoyée au ${phone}. Validez le paiement sur votre téléphone.`,
+          buttons: ['OK']
+        });
+        await successAlert.present();
+        await this.fetchShopInfo();
+      } catch (error) {
+        console.error("Erreur paiement LumiCash:", error);
+        const errAlert = await alertController.create({
+          header: 'Échec du paiement',
+          message: error.response?.data?.error || "Impossible d'initier le paiement LumiCash.",
+          buttons: ['OK']
+        });
+        await errAlert.present();
+      }
+    },
     onMonthly() {
-      // À configurer plus tard
+      this.initiateLumiCash('MONTHLY', 20000);
     },
     on6Months() {
-      // À configurer plus tard
+      this.initiateLumiCash('6MONTHS', 100000);
     },
     onAnnual() {
-      // À configurer plus tard
+      this.initiateLumiCash('ANNUAL', 180000);
     },
     goBack() {
-      // Navigation explicite pour éviter les "hallucinations" de l'historique
       this.$router.push({ name: 'shop' });
     }
   }

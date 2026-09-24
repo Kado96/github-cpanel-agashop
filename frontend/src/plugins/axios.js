@@ -6,12 +6,12 @@ import { alertController } from '@ionic/vue'
 // Configuration de l'URL de l'API
 // Pour utiliser l'API en ligne, utilisez: "https://api.agashop.bi/api"
 // Pour utiliser l'API en local, utilisez: "http://localhost:8000/api"
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api.agashop.bi/api"
-const API_ONLINE_URL = "https://api.agashop.bi/api"
+const DEFAULT_LOCAL_API = "http://localhost:8000/api"
+const API_BASE_URL = import.meta.env.VITE_API_URL || DEFAULT_LOCAL_API
+const API_ONLINE_URL = import.meta.env.VITE_API_URL || DEFAULT_LOCAL_API
 
 function url() {
-  // En mode mobile (Capacitor), TOUJOURS utiliser l'API en ligne
-  // car localhost ne fonctionne pas depuis un appareil mobile
+  // En mode mobile (Capacitor), utiliser la variable VITE_API_URL ou le fallback local
   if (Capacitor.isNativePlatform()) {
     return API_ONLINE_URL
   }
@@ -22,18 +22,16 @@ function url() {
   }
 
   // En mode web, détecter automatiquement (local vs production)
-  // Vérifier si window existe (pour éviter les erreurs en SSR)
   if (typeof window !== 'undefined' && window.location) {
     let base_host = window.location.host.split(":")[0]
     let locals = ["localhost", "127.0.0.1"]
 
     if (locals.includes(base_host)) {
-      // En local, utiliser l'API locale si disponible, sinon l'API en ligne
-      return "http://localhost:8000/api"
+      return DEFAULT_LOCAL_API
     }
   }
 
-  // En production web, utiliser l'API en ligne
+  // Fallback de sécurité
   return API_BASE_URL
 }
 

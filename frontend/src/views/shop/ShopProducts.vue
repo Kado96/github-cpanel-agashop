@@ -306,7 +306,9 @@ export default {
         starOutline,
         copyOutline,
         downloadOutline,
-        trashOutline
+        trashOutline,
+        removeOutline,
+        listOutline
       };
     },
     watch: {

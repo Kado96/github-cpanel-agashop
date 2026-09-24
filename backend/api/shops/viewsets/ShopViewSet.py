@@ -614,12 +614,20 @@ class ShopViewSet(viewsets.ModelViewSet):
 
 		# Notification
 		from api.accounts.models import Notification
+		from api.shops.models import ControlNotification
 		Notification.objects.create(
 			account=shop.owner,
 			notification_type='SUCCESS',
 			title="Abonnement Activé",
 			message=f"Votre souscription '{plan_label}' a été activée par un {user_type}. Elle est valide jusqu'au {end_date.strftime('%d/%m/%Y')}."
 		)
+		ControlNotification.objects.create(
+			shop=shop,
+			notification_type='SUBSCRIPTION_ACTIVATED',
+			title="Abonnement Activé",
+			message=f"Votre souscription '{plan_label}' a été activée avec succès. Elle est valide jusqu'au {end_date.strftime('%d/%m/%Y')}."
+		)
+
 
 		return Response({
 			"details": "Abonnement activé avec succès.",
