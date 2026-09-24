@@ -7,21 +7,22 @@ import { alertController } from '@ionic/vue'
 // Pour utiliser l'API en ligne, utilisez: "https://api.agashop.bi/api"
 // Pour utiliser l'API en local, utilisez: "http://localhost:8000/api"
 const DEFAULT_LOCAL_API = "http://localhost:8000/api"
-const API_BASE_URL = import.meta.env.VITE_API_URL || DEFAULT_LOCAL_API
-const API_ONLINE_URL = import.meta.env.VITE_API_URL || DEFAULT_LOCAL_API
+const PRODUCTION_API_URL = "https://agashop-backend.onrender.com/api"
+const API_BASE_URL = import.meta.env.VITE_API_URL || PRODUCTION_API_URL
+const API_ONLINE_URL = import.meta.env.VITE_API_URL || PRODUCTION_API_URL
 
 function url() {
-  // En mode mobile (Capacitor), utiliser la variable VITE_API_URL ou le fallback local
+  // En mode mobile (Capacitor), utiliser l'API Render
   if (Capacitor.isNativePlatform()) {
     return API_ONLINE_URL
   }
 
-  // Si une variable d'environnement est définie et qu'on n'est pas en mode natif, l'utiliser
+  // Si une variable d'environnement VITE_API_URL est définie, l'utiliser
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL
   }
 
-  // En mode web, détecter automatiquement (local vs production)
+  // En mode web, détecter automatiquement si on est en local ou en production (Wuaze / Web)
   if (typeof window !== 'undefined' && window.location) {
     let base_host = window.location.host.split(":")[0]
     let locals = ["localhost", "127.0.0.1"]
@@ -31,8 +32,8 @@ function url() {
     }
   }
 
-  // Fallback de sécurité
-  return API_BASE_URL
+  // En production web (ex: agashop.wuaze.com), utiliser l'API Render
+  return PRODUCTION_API_URL
 }
 
 // Créer l'instance avec une URL par défaut (sera mise à jour par l'interceptor)

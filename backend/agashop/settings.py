@@ -15,10 +15,13 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 # Liste des hôtes autorisés (définie dans .env ou par défaut local)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',') + [
+    "agashop-backend.onrender.com",
+    "agashop.wuaze.com",
     "api.agashop.bi",
     "agashop.bi",
     "www.agashop.bi",
-    "www.api.agashop.bi", 
+    "www.api.agashop.bi",
+    "*"
 ]
 
 # CORS Configuration pour développement local
