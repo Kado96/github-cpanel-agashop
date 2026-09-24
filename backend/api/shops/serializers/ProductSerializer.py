@@ -24,10 +24,18 @@ class BasicProductSerializer(serializers.ModelSerializer):
 		
 	def get_image_url(self, obj):
 		request = self.context.get('request')
-		# Priorité au nouveau système de média
+
+		# 1. Vérification si l'image est hébergée sur Google Drive via le SDK
+		from api.shops.models import FileMetadata
+		gdrive_meta = FileMetadata.objects.filter(product_id=str(obj.id)).first()
+		if gdrive_meta and gdrive_meta.external_file_id:
+			# Lien direct d'affichage Google Drive sans passer par le serveur local
+			return f"https://drive.google.com/uc?export=view&id={gdrive_meta.external_file_id}"
+
+		# 2. Priorité au système de média local
 		if obj.media and obj.media.file:
 			url = obj.media.file.url
-		# Fallback sur l'ancien champ image
+		# 3. Fallback sur l'ancien champ image
 		elif obj.image:
 			url = obj.image.url
 		else:
@@ -36,6 +44,7 @@ class BasicProductSerializer(serializers.ModelSerializer):
 		if request:
 			return request.build_absolute_uri(url)
 		return url
+
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
